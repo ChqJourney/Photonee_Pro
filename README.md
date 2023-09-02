@@ -1,8 +1,6 @@
-# Svelte + Vite
+# Image processing app on windows, mac, linux
 
-This template should help get you started developing with Tauri and Svelte in Vite.
+This app can preview images(png, bmg, jpg...), and manipulate images with simple action, resize, flip, rotate, remove background, etc.
 
-## Recommended IDE Setup
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
 
