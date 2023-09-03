@@ -12,10 +12,40 @@
   },
   "tauri": {
     "allowlist": {
+      "protocol": {
+        "all": false,
+        "asset": true,
+        "assetScope": [
+          "*"
+        ]
+      },
+      "dialog": {
+        "all": true,
+        "ask": false,
+        "confirm": false,
+        "message": false,
+        "open": true,
+        "save": false
+      },
       "all": false,
       "shell": {
         "all": false,
         "open": true
+      },
+      "fs":{
+        "all": true,
+        "copyFile": false,
+        "createDir": false,
+        "exists": false,
+        "readDir": false,
+        "readFile": true,
+        "removeDir": false,
+        "removeFile": false,
+        "renameFile": false,
+        "scope": [
+          "**"
+        ],
+        "writeFile": false
       }
     },
     "bundle": {
@@ -31,7 +61,7 @@
       ]
     },
     "security": {
-      "csp": null
+      "csp": "default-src: 'self'; img-src 'self' asset:"
     },
     "windows": [
       {
