@@ -1,11 +1,10 @@
 <script>
     import { open } from '@tauri-apps/api/dialog';
     import { convertFileSrc } from "@tauri-apps/api/tauri";
-    import { tick } from 'svelte';
   let w,h;
   let img;
   let imgInitWidth;
-  
+  let imgL,imgT;
   let osh,osw;
   let canvas;
   let path;
@@ -14,8 +13,26 @@
   let inEdit=false;
   $:{
     if(img&&img.width){
+      console.log("change size")
+      console.log(osw,w,img.width)
+      if(img.width>osw){
+        imgL=(img.width-osw)/2
+        console.log(imgL)
+      }else{
+        imgL=(osw-w)/2
+      }
+      if(img.height>osh){
+        imgT=(img.height-osh)/2
+      }else{
+        imgT=(osh-h)/2
+      }
+    }
+  }
+  $:console.log(imgL)
+  $:{
+    if(img&&img.width){
         const ratio=img.width/img.height;
-        console.log(scale)
+        // console.log(scale)
         if(scale===1.0){
           console.log("init")
           scale=((osh-24)*ratio)/imgInitWidth
@@ -36,7 +53,7 @@
       
     }
   }
-
+  
 </script>
 <svelte:window bind:innerHeight={osh} bind:innerWidth={osw}></svelte:window>
 <div class="relative overflow-auto">
@@ -52,10 +69,7 @@ let imgSrc= await open({
 
 if(imgSrc){
   path=convertFileSrc(imgSrc.toString());
-  // await tick();
-  img.src=path;
-  imgInitWidth=img.width;
-  console.log(imgInitWidth)
+  
   
 }
     }} class="hover:bg-gray-300 hover:fill-white">
@@ -106,9 +120,9 @@ if(imgSrc){
       <canvas bind:clientWidth={w} bind:clientHeight={h} class="" bind:this={canvas}></canvas>
     </div>
   {:else}
-  <div class={`fixed overflow-auto`} bind:clientWidth={w} bind:clientHeight={h} style="top:{(osh-h)/2}px;left:{(osw-w)/2}px;">
+  <div class={`fixed`} bind:clientWidth={w} bind:clientHeight={h} style="top:{imgT}px;left:{imgL}px;">
     <!-- {#if path} -->
-    <img class={`${path?"":"hidden"}`} src={path} bind:this={img} alt="show"/>
+    <img class={`${path?"":"hidden"}`} bind:naturalWidth={imgInitWidth} src={path} bind:this={img} alt="show"/>
     <!-- {/if} -->
   </div>
   {/if}
