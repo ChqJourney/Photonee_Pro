@@ -1,6 +1,8 @@
 <script>
   import { open } from "@tauri-apps/api/dialog";
   import { convertFileSrc } from "@tauri-apps/api/tauri";
+  import { appWindow } from '@tauri-apps/api/window'
+    import { tick } from "svelte";
   let status={inEdit:false,panning:false}
   let pointX=0;
   let pointY=0;
@@ -50,9 +52,13 @@
     transform="translate(" + pointX + "px, " + pointY + "px) scale(" + scale + ")";
     console.log(transform)
   }
-  function setTransform() {
-        img.style.transform = "translate(" + pointX + "px, " + pointY + "px) scale(" + scale + ")";
-      }
+ 
+  $:{
+    if(img&&img.naturalWidth){
+      pointX=(osw-img.naturalWidth)/2
+      pointY=(osh-img.naturalHeight)/2
+    }
+  }
   const render = () => {
     img = new Image();
     img.src = path;
@@ -67,10 +73,11 @@
 </script>
 
 <svelte:window class="" bind:innerHeight={osh} bind:innerWidth={osw} />
-<div class={`relative h-screen overflow-scroll`}>
-  <div
-    class="absolute z-50 h-12 w-full bg-gray-300 opacity-50 flex justify-center items-center gap-4 px-4"
-  >
+<div style="border-radius: 10px;" class={`relative h-screen bg-slate-100 `}>
+  <div data-tauri-drag-region  class="fixed z-50 h-8 w-full flex justify-between items-center px-4">
+    
+    <div></div>
+    <div class="flex gap-4">
     <button
       on:click={async () => {
         let imgSrc = await open({
@@ -90,6 +97,9 @@
           }else{
             
             path = convertFileSrc(imgSrc.toString());
+            setTimeout(()=>{
+              console.log(img.naturalWidth)
+            },800)
             // setTransform()
           }
         }
@@ -97,7 +107,7 @@
       class="hover:bg-gray-300 hover:fill-white"
     >
       <svg
-        class="h-6 w-6"
+        class="h-4 w-4"
         viewBox="0 0 1024 1024"
         version="1.1"
         xmlns="http://www.w3.org/2000/svg"
@@ -116,7 +126,7 @@
       class="hover:bg-gray-300 hover:fill-white"
     >
       <svg
-        class="h-6 w-6"
+        class="h-4 w-4"
         viewBox="0 0 1024 1024"
         version="1.1"
         xmlns="http://www.w3.org/2000/svg"
@@ -137,7 +147,7 @@
       class="hover:bg-gray-300 hover:fill-white"
     >
       <svg
-        class="h-6 w-6"
+        class="h-4 w-4"
         viewBox="0 0 1024 1024"
         version="1.1"
         xmlns="http://www.w3.org/2000/svg"
@@ -151,8 +161,31 @@
       >
     </button>
     <button class="hover:bg-gray-300 hover:fill-white">
-      <svg class="h-6 w-6" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M853.333333 501.333333c-17.066667 0-32 14.933333-32 32v320c0 6.4-4.266667 10.666667-10.666666 10.666667H170.666667c-6.4 0-10.666667-4.266667-10.666667-10.666667V213.333333c0-6.4 4.266667-10.666667 10.666667-10.666666h320c17.066667 0 32-14.933333 32-32s-14.933333-32-32-32H170.666667c-40.533333 0-74.666667 34.133333-74.666667 74.666666v640c0 40.533333 34.133333 74.666667 74.666667 74.666667h640c40.533333 0 74.666667-34.133333 74.666666-74.666667V533.333333c0-17.066667-14.933333-32-32-32z" ></path><path d="M405.333333 484.266667l-32 125.866666c-2.133333 10.666667 0 23.466667 8.533334 29.866667 6.4 6.4 14.933333 8.533333 23.466666 8.533333h8.533334l125.866666-32c6.4-2.133333 10.666667-4.266667 14.933334-8.533333l300.8-300.8c38.4-38.4 38.4-102.4 0-140.8-38.4-38.4-102.4-38.4-140.8 0L413.866667 469.333333c-4.266667 4.266667-6.4 8.533333-8.533334 14.933334z m59.733334 23.466666L761.6 213.333333c12.8-12.8 36.266667-12.8 49.066667 0 12.8 12.8 12.8 36.266667 0 49.066667L516.266667 558.933333l-66.133334 17.066667 14.933334-68.266667z"></path></svg>
+      <svg class="h-4 w-4" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M853.333333 501.333333c-17.066667 0-32 14.933333-32 32v320c0 6.4-4.266667 10.666667-10.666666 10.666667H170.666667c-6.4 0-10.666667-4.266667-10.666667-10.666667V213.333333c0-6.4 4.266667-10.666667 10.666667-10.666666h320c17.066667 0 32-14.933333 32-32s-14.933333-32-32-32H170.666667c-40.533333 0-74.666667 34.133333-74.666667 74.666666v640c0 40.533333 34.133333 74.666667 74.666667 74.666667h640c40.533333 0 74.666667-34.133333 74.666666-74.666667V533.333333c0-17.066667-14.933333-32-32-32z" ></path><path d="M405.333333 484.266667l-32 125.866666c-2.133333 10.666667 0 23.466667 8.533334 29.866667 6.4 6.4 14.933333 8.533333 23.466666 8.533333h8.533334l125.866666-32c6.4-2.133333 10.666667-4.266667 14.933334-8.533333l300.8-300.8c38.4-38.4 38.4-102.4 0-140.8-38.4-38.4-102.4-38.4-140.8 0L413.866667 469.333333c-4.266667 4.266667-6.4 8.533333-8.533334 14.933334z m59.733334 23.466666L761.6 213.333333c12.8-12.8 36.266667-12.8 49.066667 0 12.8 12.8 12.8 36.266667 0 49.066667L516.266667 558.933333l-66.133334 17.066667 14.933334-68.266667z"></path></svg>
     </button>
+  </div>
+  <div class="flex">
+    <div class="titlebar-button" id="titlebar-minimize">
+      <img
+        src="https://api.iconify.design/mdi:window-minimize.svg"
+        alt="minimize"
+      />
+    </div>
+    <div class="titlebar-button" id="titlebar-maximize">
+      <img
+        src="https://api.iconify.design/mdi:window-maximize.svg"
+        alt="maximize"
+      />
+    </div>
+    <div class="titlebar-button" id="titlebar-close">
+      <img src="https://api.iconify.design/mdi:close.svg" alt="close" />
+    </div>
+  </div>
+  </div>
+  <!-- <div
+    class="absolute z-50 h-12 w-full bg-gray-300 opacity-50 flex justify-center items-center gap-4 px-4"
+  >
+    
     {#if status.inEdit}
       <button class="hover:bg-gray-300 hover:fill-white">
         <svg
@@ -253,10 +286,10 @@
         >
       </button>
     {/if}
-  </div>
+  </div> -->
 
   {#if status.inEdit}
-      <canvas style="top:{imgT}px;left:{imgL}px;max-width:1000%" width=""
+      <canvas style="top:{imgT}px;left:{imgL}px;max-width:1000%" 
         class={`z-10 absolute object-cover ${path ? "" : "hidden"}`}
         bind:this={canvas}
       />
