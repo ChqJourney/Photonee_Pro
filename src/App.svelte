@@ -3,10 +3,8 @@
   import { convertFileSrc } from "@tauri-apps/api/tauri";
   import { appWindow } from '@tauri-apps/api/window'
     import { tick } from "svelte";
-  let status={inEdit:false,panning:false}
-  let pointX=0;
-  let pointY=0;
-  let start={x:0,y:0}
+  let status={inEdit:false,panning:false,rotating:false}
+  
   let img;
   let imgInitWidth;
   let imgL, imgT;
@@ -14,51 +12,24 @@
   let canvas;
   let path;
   let ctx;
+  let start={x:0,y:0}
   let scale = 1.0;
-  // $: {
-  //   if (img && img.width) {
-  //     console.log("change size");
-  //     console.log(osw,osh, img.width,img.height);
-  //     if (img.width > osw) {
-  //       imgL = -(img.width - osw) / 2;
-  //       console.log(imgL);
-  //     } else {
-  //       imgL = (osw - img.width) / 2;
-  //     }
-  //     if (img.height > osh) {
-  //       imgT = -(img.height - osh) / 2;
-  //     } else {
-  //       imgT = (osh - img.height) / 2;
-  //     }
-  //     pointX=imgL;
-  //     pointY=imgT;
-  //   }
-  // }
-  // $: console.log(imgL,imgT);
-  // $: {
-  //   if (img && img.width) {
-  //     const ratio = img.naturalWidth / img.naturalHeight;
-  //     // console.log(scale)
-  //     if (scale === 1.0) {
-  //       console.log("init");
-  //       scale = ((osh - 24) * ratio) / imgInitWidth;
-        
-  //     }
-  //     img.width = scale * imgInitWidth;
-  //   }
-  // }
+  let rotation=0;
+  let pointX=0;
+  let pointY=0;
   let transform;
-  $:{
-    transform="translate(" + pointX + "px, " + pointY + "px) scale(" + scale + ")";
-    console.log(transform)
-  }
  
   $:{
-    if(img&&img.naturalWidth){
-      pointX=(osw-img.naturalWidth)/2
-      pointY=(osh-img.naturalHeight)/2
+    if(img){
+      pointX=-img.naturalWidth/2+(img.naturalWidth*scale)/2
+    pointY=-img.naturalHeight/2+(img.naturalHeight*scale)/2
+      transform="translate(" + pointX + "px, " + pointY + "px) scale(" + scale + ")"+"rotate("+rotation+"deg)";
+      console.log(transform)
     }
   }
+ 
+ 
+  $: console.log(pointX,pointY)
   const render = () => {
     img = new Image();
     img.src = path;
@@ -73,8 +44,8 @@
 </script>
 
 <svelte:window class="" bind:innerHeight={osh} bind:innerWidth={osw} />
-<div style="border-radius: 10px;" class={`relative h-screen bg-slate-100 `}>
-  <div data-tauri-drag-region  class="fixed z-50 h-8 w-full flex justify-between items-center px-4">
+<div style="border-radius: 10px;" class={`relative h-screen py-8 bg-slate-100 `}>
+  <div data-tauri-drag-region  class="fixed top-0 z-50 h-8 w-full flex justify-between items-center px-4">
     
     <div></div>
     <div class="flex gap-4">
@@ -95,11 +66,11 @@
             path = convertFileSrc(imgSrc.toString());
             render()
           }else{
-            
             path = convertFileSrc(imgSrc.toString());
-            setTimeout(()=>{
-              console.log(img.naturalWidth)
-            },800)
+            scale=1.0;
+            rotation=0;
+            pointX=0;
+            pointY=0;
             // setTransform()
           }
         }
@@ -163,6 +134,20 @@
     <button class="hover:bg-gray-300 hover:fill-white">
       <svg class="h-4 w-4" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M853.333333 501.333333c-17.066667 0-32 14.933333-32 32v320c0 6.4-4.266667 10.666667-10.666666 10.666667H170.666667c-6.4 0-10.666667-4.266667-10.666667-10.666667V213.333333c0-6.4 4.266667-10.666667 10.666667-10.666666h320c17.066667 0 32-14.933333 32-32s-14.933333-32-32-32H170.666667c-40.533333 0-74.666667 34.133333-74.666667 74.666666v640c0 40.533333 34.133333 74.666667 74.666667 74.666667h640c40.533333 0 74.666667-34.133333 74.666666-74.666667V533.333333c0-17.066667-14.933333-32-32-32z" ></path><path d="M405.333333 484.266667l-32 125.866666c-2.133333 10.666667 0 23.466667 8.533334 29.866667 6.4 6.4 14.933333 8.533333 23.466666 8.533333h8.533334l125.866666-32c6.4-2.133333 10.666667-4.266667 14.933334-8.533333l300.8-300.8c38.4-38.4 38.4-102.4 0-140.8-38.4-38.4-102.4-38.4-140.8 0L413.866667 469.333333c-4.266667 4.266667-6.4 8.533333-8.533334 14.933334z m59.733334 23.466666L761.6 213.333333c12.8-12.8 36.266667-12.8 49.066667 0 12.8 12.8 12.8 36.266667 0 49.066667L516.266667 558.933333l-66.133334 17.066667 14.933334-68.266667z"></path></svg>
     </button>
+    <button on:click={()=>{
+      status={...status,rotating:true}
+      rotation-=5
+      // transformOri="0% 0%"
+    }} class="hover:bg-gray-300 hover:fill-white">
+      <svg class="h-4 w-4" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M118.102838 172.97354c-8.577353 1.840928-16.083304 5.950526-21.635763 13.023618s-7.763824 15.340383-6.63307 24.801872l17.483186 99.467409c1.001817 15.07637 5.414313 18.541285 18.651802 28.933983 12.355399 9.699919 26.732851 9.555633 34.616402 8.598842l84.314291-3.829212c17.342993-2.103918 30.53034-18.902512 28.458145-36.248575-2.072195-17.347087-18.84009-30.510898-36.183083-28.40698l-28.250415-2.172479C341.179496 112.313995 582.402443 83.048461 747.434104 212.611306c165.91375 130.254599 194.743356 371.529735 64.947197 536.8602-130.490983 166.213579-371.020128 194.593953-536.933878 64.339354-89.135086-69.977771-142.622278-176.275749-145.846716-290.272059 1.834788-11.42112-3.520173-22.77061-12.345166-29.698393-15.002692-11.778254-36.193317-8.407484-47.298236 5.737678-2.082428 2.65241-6.057973 9.534144-6.057973 9.534144l-0.128936 5.614881c-1.011027 4.922103-0.446162 9.652847 0.813528 13.499455 4.602831 132.22651 66.469877 255.107165 170.607656 336.862168 195.037045 153.11833 477.252615 118.880551 629.953436-75.624375s118.973672-476.781894-76.063373-629.901247C603.749634 14.066367 344.053963 35.973306 184.489828 206.514447c-3.470031 4.420683-20.694321 20.908192-25.047466 24.636097l-4.462638-30.655184c-9.379625-31.658024-36.876885-27.52182-36.876886-27.52182z"></path></svg>
+    </button>
+    <button on:click={()=>{
+      status={...status,rotating:true}
+      rotation+=5;
+      // transformOri="0% 0%"
+    }} class="hover:bg-gray-300 hover:fill-white">
+      <svg class="h-4 w-4" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M512 64c160 0 304 83.2 384 217.6L896 256c0-19.2 12.8-32 32-32s32 12.8 32 32l0 128c0 19.2-12.8 32-32 32l-128 0c-19.2 0-32-12.8-32-32s12.8-32 32-32l60.8 0c-64-137.6-198.4-224-348.8-224C300.8 128 128 300.8 128 512s172.8 384 384 384c153.6 0 294.4-92.8 352-233.6 6.4-16 25.6-22.4 41.6-16 16 6.4 22.4 25.6 16 41.6C854.4 854.4 691.2 960 512 960 265.6 960 64 758.4 64 512S265.6 64 512 64z"></path></svg>
+    </button>
   </div>
   <div class="flex">
     <div class="titlebar-button" id="titlebar-minimize">
@@ -182,133 +167,37 @@
     </div>
   </div>
   </div>
-  <!-- <div
-    class="absolute z-50 h-12 w-full bg-gray-300 opacity-50 flex justify-center items-center gap-4 px-4"
-  >
-    
-    {#if status.inEdit}
-      <button class="hover:bg-gray-300 hover:fill-white">
-        <svg
-          class="h-6 w-6"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          width="200"
-          height="200"
-          ><path
-            d="M341.333333 85.333333H256v170.666667H85.333333v85.333333h170.666667v384a42.666667 42.666667 0 0 0 42.666667 42.666667h384v170.666667h85.333333v-170.666667h170.666667v-85.333333H341.333333V85.333333z"
-          /><path
-            d="M768 597.333333V298.666667a42.666667 42.666667 0 0 0-42.666667-42.666667h-298.666666v85.333333h256v256h85.333333z"
-          /></svg
-        >
-      </button>
-      <button class="hover:bg-gray-300 hover:fill-white">
-        <svg
-          class="h-6 w-6"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          width="200"
-          height="200"
-          ><path
-            d="M932.8 864l91.2-54.4L705.6 688c-4.8-4.8-14.4 4.8-9.6 9.6l36.8 91.2v36.8h14.4l73.6 195.2 54.4-91.2 64 64c9.6 9.6 22.4 14.4 32 14.4 9.6 0 22.4-4.8 32-14.4 17.6-17.6 17.6-44.8 0-64L932.8 864zM454.4 732.8h182.4v91.2H454.4zM136 732.8h182.4v91.2H136zM0 777.6c0 27.2 17.6 44.8 44.8 44.8h44.8v-91.2H0v46.4zM0 459.2h91.2v182.4H0zM0 140.8h91.2v182.4H0zM0 49.6V96h91.2V4.8H44.8C17.6 4.8 0 22.4 0 49.6zM182.4 4.8h182.4V96H182.4zM500.8 4.8h182.4V96H500.8zM819.2 49.6c0-27.2-17.6-44.8-44.8-44.8h-44.8V96h91.2V49.6zM728 187.2h91.2v182.4h-91.2zM728 505.6h91.2V688h-91.2z"
-          /></svg
-        >
-      </button>
-      <button class="hover:bg-gray-300 hover:fill-white">
-        <svg
-          class="h-6 w-6"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          width="200"
-          height="200"
-          ><path
-            d="M168.123733 972.8H167.765333c-71.594667-0.768-114.3808-43.485867-117.367466-117.230933a34.116267 34.116267 0 0 1 32.7168-35.4816 34.304 34.304 0 0 1 35.498666 32.7168c1.723733 42.837333 19.592533 51.4048 49.851734 51.729066a34.133333 34.133333 0 0 1-0.341334 68.266667z m682.6496 0a34.133333 34.133333 0 0 1 0-68.266667c37.802667 0 51.2-13.397333 51.2-51.2a34.133333 34.133333 0 0 1 68.266667 0c0 75.912533-43.554133 119.466667-119.466667 119.466667zM552.96 972.8h-84.48a34.133333 34.133333 0 0 1 0-68.266667h84.48a34.133333 34.133333 0 0 1 0 68.266667z m383.146667-384a34.133333 34.133333 0 0 1-34.133334-34.133333v-84.48a34.133333 34.133333 0 0 1 68.266667 0v84.48a34.133333 34.133333 0 0 1-34.133333 34.133333z m-853.333334 0a34.133333 34.133333 0 0 1-34.133333-34.133333v-85.333334a34.133333 34.133333 0 0 1 68.266667 0v85.333334a34.133333 34.133333 0 0 1-34.133334 34.133333zM942.08 204.8a34.133333 34.133333 0 0 1-34.133333-34.133333c0-37.802667-13.397333-51.2-51.2-51.2h-5.973334a34.133333 34.133333 0 0 1 0-68.266667h5.973334c75.912533 0 119.466667 43.537067 119.466666 119.466667a34.133333 34.133333 0 0 1-34.133333 34.133333zM82.7904 204.8h-0.341333a34.133333 34.133333 0 0 1-33.792-34.474667C49.390933 94.6176 92.928 51.2 168.106667 51.2a34.133333 34.133333 0 0 1 0 68.266667c-37.4272 0-50.824533 13.482667-51.2 51.541333A34.133333 34.133333 0 0 1 82.7904 204.8zM552.106667 119.466667h-83.626667a34.133333 34.133333 0 0 1 0-68.266667h83.6096a34.133333 34.133333 0 0 1 0.017067 68.266667zM850.773333 870.4h-682.666666a17.066667 17.066667 0 0 1-17.066667-17.066667V170.666667a17.066667 17.066667 0 0 1 17.066667-17.066667h682.666666a17.066667 17.066667 0 0 1 17.066667 17.066667v682.666666a17.066667 17.066667 0 0 1-17.066667 17.066667z m-665.6-34.133333h648.533334V187.733333h-648.533334v648.533334z"
-          /></svg
-        >
-      </button>
-      <button class="hover:bg-gray-300 hover:fill-white">
-        <svg
-          class="h-6 w-6"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          width="200"
-          height="200"
-          ><path
-            d="M853.333333 138.666667H170.666667c-17.066667 0-32 14.933333-32 32v128c0 17.066667 14.933333 32 32 32s32-14.933333 32-32V202.666667h277.333333v618.666666H384c-17.066667 0-32 14.933333-32 32s14.933333 32 32 32h256c17.066667 0 32-14.933333 32-32s-14.933333-32-32-32h-96v-618.666666h277.333333V298.666667c0 17.066667 14.933333 32 32 32s32-14.933333 32-32V170.666667c0-17.066667-14.933333-32-32-32z"
-          /></svg
-        >
-      </button>
-      <button class="hover:bg-gray-300 hover:fill-white">
-        <svg
-          class="h-6 w-6"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          width="200"
-          height="200"
-          ><path
-            d="M301.269333 938.666667c64.981333 0 121.173333-23.168 166.826667-68.821334 47.914667-47.914667 72.832-121.770667 66.176-191.744l365.397333-365.397333a133.248 133.248 0 0 0-0.085333-188.330667c-50.261333-50.346667-137.984-50.346667-188.245333 0l-379.050667 379.050667c-81.621333 7.210667-162.432 64.896-162.432 167.210667 0 12.928 0.896 25.088 1.792 36.693333 3.413333 43.989333 4.650667 60.501333-62.762667 94.208a42.709333 42.709333 0 0 0-5.205333 73.258667C107.52 877.354667 197.248 938.666667 301.269333 938.666667c-0.042667 0-0.042667 0 0 0zM771.669333 184.661333a48.810667 48.810667 0 0 1 67.669334 0.085334 47.786667 47.786667 0 0 1 0 67.584L512 579.669333 444.330667 512l327.338666-327.338667zM256.768 700.714667c-0.768-9.557333-1.578667-19.541333-1.578667-30.122667 0-65.92 61.653333-83.328 94.293334-83.328 15.189333 0 29.824 3.114667 41.130666 8.789333 40.32 20.266667 53.76 55.168 57.898667 80.896 7.552 46.506667-9.258667 101.034667-40.789333 132.565334C378.24 838.997333 343.424 853.333333 301.269333 853.333333H301.226667c-32 0-63.104-8.362667-88.490667-18.218666 46.165333-41.514667 47.829333-84.864 44.032-134.4z"
-          /></svg
-        >
-      </button>
-      <button class="hover:bg-gray-300 hover:fill-white">
-        <svg
-          class="h-6 w-6"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          width="200"
-          height="200"
-          ><path
-            d="M256 352c44.8 0 76.8-25.6 89.6-64L832 288c19.2 0 32-12.8 32-32S851.2 224 832 224L345.6 224c-12.8-38.4-51.2-64-89.6-64C204.8 160 160 204.8 160 256S204.8 352 256 352zM256 224c19.2 0 32 12.8 32 32S275.2 288 256 288 224 275.2 224 256 236.8 224 256 224z"
-          /><path
-            d="M832 480 601.6 480c-12.8-38.4-51.2-64-89.6-64s-76.8 25.6-89.6 64L192 480C172.8 480 160 492.8 160 512S172.8 544 192 544l230.4 0c12.8 38.4 51.2 64 89.6 64s76.8-25.6 89.6-64L832 544c19.2 0 32-12.8 32-32S851.2 480 832 480zM512 544C492.8 544 480 531.2 480 512S492.8 480 512 480 544 492.8 544 512 531.2 544 512 544z"
-          /><path
-            d="M768 672c-44.8 0-76.8 25.6-89.6 64L192 736c-19.2 0-32 12.8-32 32s12.8 32 32 32l486.4 0c12.8 38.4 51.2 64 89.6 64 51.2 0 96-44.8 96-96S819.2 672 768 672zM768 800c-19.2 0-32-12.8-32-32s12.8-32 32-32 32 12.8 32 32S787.2 800 768 800z"
-          /></svg
-        >
-      </button>
-
-      <button class="hover:bg-gray-300 hover:fill-white">
-        <svg
-          class="h-6 w-6"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          width="200"
-          height="200"
-          ><path
-            d="M572.458667 253.141333L448.853333 319.488 381.397333 440.746667 313.856 319.488 190.421333 253.141333l123.434667-66.346666L381.44 65.408l67.498667 121.386667 123.562666 66.346666z m2.901333-162.176l50.048-14.378666-14.634667 49.194666 14.634667 49.194667-50.048-14.506667-50.090667 14.506667 14.72-49.194667-14.72-49.194666 50.090667 14.378666z m-315.690667-37.504L297.216 42.666667l-11.050667 36.821333 11.008 36.864-37.504-10.837333-37.461333 10.837333 11.008-36.864L222.208 42.666667l37.461333 10.794666zM834.133333 608.426667l29.994667-8.618667-8.746667 29.525333 8.746667 29.482667-29.994667-8.704-30.037333 8.704 8.832-29.482667-8.832-29.525333 30.037333 8.618667z m12.970667-436.437334l60.373333 60.373334a74.666667 74.666667 0 0 1 0 105.557333L273.877333 971.52a74.666667 74.666667 0 0 1-105.557333 0L107.946667 911.104a74.666667 74.666667 0 0 1 0-105.557333L741.546667 171.946667a74.666667 74.666667 0 0 1 105.557333 0z m-45.226667 45.269334a10.666667 10.666667 0 0 0-15.104 0L153.216 850.816a10.666667 10.666667 0 0 0 0 15.061333l60.330667 60.330667a10.666667 10.666667 0 0 0 15.104 0l633.557333-633.6a10.666667 10.666667 0 0 0 0-15.061333l-60.330667-60.330667z m-51.968 82.133333a21.333333 21.333333 0 0 1 30.165334 30.165333l-115.626667 115.626667a21.333333 21.333333 0 0 1-30.165333-30.165333l115.626666-115.626667z"
-          /></svg
-        >
-      </button>
-    {/if}
-  </div> -->
-
-  {#if status.inEdit}
-      <canvas style="top:{imgT}px;left:{imgL}px;max-width:1000%" 
-        class={`z-10 absolute object-cover ${path ? "" : "hidden"}`}
-        bind:this={canvas}
-      />
-   
-  {:else}
+  
     <!-- <div
       class={`absolute bg-transparent z-0 overflow-hidden`}
       bind:clientWidth={w}
       bind:clientHeight={h}
       style="top:{imgT}px;left:{imgL}px;"
     > -->
+    <!-- <div class="relative z-0 bg-transparent overflow-hidden min-w-fit"> -->
+
+    
       <!-- {#if path} -->
       <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-      <img on:wheel={e=>{
+      <img on:load={()=>{
+        const ratio=img.naturalWidth/img.naturalHeight;
+        console.log(ratio)
+        if(ratio>1){
+          if(img.naturalWidth>osw){
+            scale=(osw-120)/img.naturalWidth
+          }
+        }else{
+          if(img.naturalHeight>osh){
+            scale=(osh-120)/img.naturalHeight
+          }
+        }
+        
+      }} on:wheel={e=>{
         e.preventDefault();
         var xs = (e.clientX - pointX) / scale,
           ys = (e.clientY - pointY) / scale,
           delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
-        (delta > 0) ? (scale *= 1.2) : (scale /= 1.2);
+        (delta > 0) ? (scale *= 1.1) : (scale /= 1.1);
         pointX = e.clientX - xs * scale;
         pointY = e.clientY - ys * scale;
 
@@ -317,6 +206,7 @@
       on:mousedown={e=>{
         e.preventDefault();
         start = { x: e.clientX - pointX, y: e.clientY - pointY };
+        console.log(start)
         status={...status,panning:true}
       }}
       on:mouseup={e=>{
@@ -331,20 +221,20 @@
         pointY = (e.clientY - start.y);
         // setTransform();
       }}
-      style="top:{imgT}px;left:{imgL}px;max-width:1000%;transform-origin: 0px 0px;
-      transform: {transform};"
+      style="max-width:1000%;transform: {transform};"
         class={`z-10 cursor-grab absolute object-cover ${path ? "" : "hidden"}`}
         bind:naturalWidth={imgInitWidth}
         src={path}
         bind:this={img}
         alt="show"
       />
+    <!-- </div> -->
       <!-- {/if} -->
     <!-- </div> -->
-  {/if}
-  <div class="absolute left-4" style="top:{osh / 2 - 24}px">
+    {#if path}
+  <div class="absolute z-50 left-4" style="top:{osh / 2 - 24}px">
     <button
-      class="h-12 rounded-full w-12 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
+      class="h-10 rounded-full w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
     >
       <svg
         class="h-8 w-8"
@@ -359,9 +249,11 @@
       >
     </button>
   </div>
-  <div class="absolute right-4" style="top:{osh / 2 - 24}px">
+  {/if}
+  {#if path}
+  <div class="absolute z-50 right-4" style="top:{osh / 2 - 24}px">
     <button
-      class="h-12 rounded-full w-12 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
+      class="h-10 rounded-full w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
     >
       <svg
         class="h-8 w-8"
@@ -376,4 +268,5 @@
       >
     </button>
   </div>
+  {/if}
 </div>
