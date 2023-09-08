@@ -3,11 +3,11 @@
   import { convertFileSrc } from "@tauri-apps/api/tauri";
   import { appWindow } from '@tauri-apps/api/window'
     import { tick } from "svelte";
+    import { fitSize, nSize, size } from "./funcs/image";
   let status={inEdit:false,panning:false,rotating:false}
-  
+  let w,h;
   let img;
   let imgInitWidth;
-  let imgL, imgT;
   let osh, osw;
   let canvas;
   let path;
@@ -18,16 +18,21 @@
   let pointX=0;
   let pointY=0;
   let transform;
- 
+  let transPoint="0% 0%";
   $:{
     if(img){
-      pointX=-img.naturalWidth/2+(img.naturalWidth*scale)/2
-    pointY=-img.naturalHeight/2+(img.naturalHeight*scale)/2
-      transform="translate(" + pointX + "px, " + pointY + "px) scale(" + scale + ")"+"rotate("+rotation+"deg)";
+      transform="translate(" + pointX + "px, " + pointY + "px) scale(" + scale + ")";
       console.log(transform)
     }
   }
- 
+//  $:{
+//   if(status.rotating){
+//     transPoint=`${scale*100}% ${scale*100}%`
+//   }else{
+//     transPoint="0% 0%";
+//   }
+//   console.log(transPoint)
+//  }
  
   $: console.log(pointX,pointY)
   const render = () => {
@@ -44,7 +49,7 @@
 </script>
 
 <svelte:window class="" bind:innerHeight={osh} bind:innerWidth={osw} />
-<div style="border-radius: 10px;" class={`relative h-screen py-8 bg-slate-100 `}>
+<div style="border-radius: 10px;" class={`relative flex items-center justify-center h-screen py-8 px-8 bg-slate-100 `}>
   <div data-tauri-drag-region  class="fixed top-0 z-50 h-8 w-full flex justify-between items-center px-4">
     
     <div></div>
@@ -137,6 +142,7 @@
     <button on:click={()=>{
       status={...status,rotating:true}
       rotation-=5
+      // status={...status,rotating:false}
       // transformOri="0% 0%"
     }} class="hover:bg-gray-300 hover:fill-white">
       <svg class="h-4 w-4" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M118.102838 172.97354c-8.577353 1.840928-16.083304 5.950526-21.635763 13.023618s-7.763824 15.340383-6.63307 24.801872l17.483186 99.467409c1.001817 15.07637 5.414313 18.541285 18.651802 28.933983 12.355399 9.699919 26.732851 9.555633 34.616402 8.598842l84.314291-3.829212c17.342993-2.103918 30.53034-18.902512 28.458145-36.248575-2.072195-17.347087-18.84009-30.510898-36.183083-28.40698l-28.250415-2.172479C341.179496 112.313995 582.402443 83.048461 747.434104 212.611306c165.91375 130.254599 194.743356 371.529735 64.947197 536.8602-130.490983 166.213579-371.020128 194.593953-536.933878 64.339354-89.135086-69.977771-142.622278-176.275749-145.846716-290.272059 1.834788-11.42112-3.520173-22.77061-12.345166-29.698393-15.002692-11.778254-36.193317-8.407484-47.298236 5.737678-2.082428 2.65241-6.057973 9.534144-6.057973 9.534144l-0.128936 5.614881c-1.011027 4.922103-0.446162 9.652847 0.813528 13.499455 4.602831 132.22651 66.469877 255.107165 170.607656 336.862168 195.037045 153.11833 477.252615 118.880551 629.953436-75.624375s118.973672-476.781894-76.063373-629.901247C603.749634 14.066367 344.053963 35.973306 184.489828 206.514447c-3.470031 4.420683-20.694321 20.908192-25.047466 24.636097l-4.462638-30.655184c-9.379625-31.658024-36.876885-27.52182-36.876886-27.52182z"></path></svg>
@@ -144,6 +150,7 @@
     <button on:click={()=>{
       status={...status,rotating:true}
       rotation+=5;
+      // status={...status,rotating:false}
       // transformOri="0% 0%"
     }} class="hover:bg-gray-300 hover:fill-white">
       <svg class="h-4 w-4" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M512 64c160 0 304 83.2 384 217.6L896 256c0-19.2 12.8-32 32-32s32 12.8 32 32l0 128c0 19.2-12.8 32-32 32l-128 0c-19.2 0-32-12.8-32-32s12.8-32 32-32l60.8 0c-64-137.6-198.4-224-348.8-224C300.8 128 128 300.8 128 512s172.8 384 384 384c153.6 0 294.4-92.8 352-233.6 6.4-16 25.6-22.4 41.6-16 16 6.4 22.4 25.6 16 41.6C854.4 854.4 691.2 960 512 960 265.6 960 64 758.4 64 512S265.6 64 512 64z"></path></svg>
@@ -168,31 +175,17 @@
   </div>
   </div>
   
-    <!-- <div
-      class={`absolute bg-transparent z-0 overflow-hidden`}
-      bind:clientWidth={w}
-      bind:clientHeight={h}
-      style="top:{imgT}px;left:{imgL}px;"
-    > -->
-    <!-- <div class="relative z-0 bg-transparent overflow-hidden min-w-fit"> -->
+    <div bind:clientWidth={w} bind:clientHeight={h} class="w-full h-full relative">
 
     
       <!-- {#if path} -->
       <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
       <img on:load={()=>{
-        const ratio=img.naturalWidth/img.naturalHeight;
-        console.log(ratio)
-        if(ratio>1){
-          if(img.naturalWidth>osw){
-            scale=(osw-120)/img.naturalWidth
-          }
-        }else{
-          if(img.naturalHeight>osh){
-            scale=(osh-120)/img.naturalHeight
-          }
-        }
-        
-      }} on:wheel={e=>{
+        console.log(w,h)
+        scale=fitSize(img,w,h,66)
+        console.log(scale)
+      }}
+       on:wheel={e=>{
         e.preventDefault();
         var xs = (e.clientX - pointX) / scale,
           ys = (e.clientY - pointY) / scale,
@@ -200,8 +193,6 @@
         (delta > 0) ? (scale *= 1.1) : (scale /= 1.1);
         pointX = e.clientX - xs * scale;
         pointY = e.clientY - ys * scale;
-
-        // setTransform();
       }} 
       on:mousedown={e=>{
         e.preventDefault();
@@ -219,20 +210,19 @@
         }
         pointX = (e.clientX - start.x);
         pointY = (e.clientY - start.y);
-        // setTransform();
       }}
       style="max-width:1000%;transform: {transform};"
-        class={`z-10 cursor-grab absolute object-cover ${path ? "" : "hidden"}`}
+        class={`z-10 origin-top-right cursor-grab absolute object-cover`}
         bind:naturalWidth={imgInitWidth}
-        src={path}
+        src={"glass.jpeg"}
         bind:this={img}
         alt="show"
       />
-    <!-- </div> -->
-      <!-- {/if} -->
-    <!-- </div> -->
+
+   </div>
     {#if path}
   <div class="absolute z-50 left-4" style="top:{osh / 2 - 24}px">
+
     <button
       class="h-10 rounded-full w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
     >
