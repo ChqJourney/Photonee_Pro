@@ -1,6 +1,21 @@
+import { ext } from "./file";
+
+export const imageFormatArr=["jpg","jpeg","png","gif","JPG","JPEG","GIF","PNG","ICO","ico",".apng","APNG","avif","AVIF","bmp","BMP","cur","CUR","svg","SVG","tif","TIF","TIFF","tiff","webp","WEBP","jfif","pjpeg","pjp","JFIF","PJPEG","PJP"]
+
+export const isImageFormat=(filePath)=>{
+    const extension=ext(filePath);
+    console.log(extension);
+    console.log(imageFormatArr)
+    if(imageFormatArr.includes(extension)){
+        return true
+    }
+    return false;
+}
+// natural size
 export const nSize = (img) => {
     return { w: img?.naturalWidth ?? 0, h: img?.naturalHeight ?? 0 };
 }
+
 export const size = (img) => {
     console.log(img.height)
     return { w: img?.width ?? 0, h: img?.height ?? 0 };

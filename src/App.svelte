@@ -1,58 +1,66 @@
 <script>
   import { open } from "@tauri-apps/api/dialog";
   import { convertFileSrc } from "@tauri-apps/api/tauri";
-  import { appWindow } from '@tauri-apps/api/window'
-    import { onMount, tick } from "svelte";
-    import { fitSize} from "./funcs/image";
-    import { listen } from '@tauri-apps/api/event';
-    import { readDir, BaseDirectory } from '@tauri-apps/api/fs';
-onMount(async()=>{
-  await listen('tauri://file-drop', async(event) => {
-    if(!event.payload)return;
-    const idx=event.payload.toString().lastIndexOf('.');
-    const ext=event.payload.toString().substring(idx+1);
-    const imgExtArr=["jpg","jpeg","png","gif","JPG","JPEG","GIF","PNG"];
-    console.log(ext);
-    if(imgExtArr.includes(ext)){
-      path=convertFileSrc(event.payload)
-    }
-    const dirIdx=event.payload.toString().lastIndexOf('/');
-    const dir=event.payload.toString().substring(0,dirIdx);
-    console.log(dir);
-    const entries = await readDir(dir);
-  console.log(entries);
-});
-})
-  let status={inEdit:false,panning:false,rotating:false}
-  let w,h;
+  import { onMount, tick } from "svelte";
+  import { fitSize, isImageFormat } from "./funcs/image";
+  import { listen } from "@tauri-apps/api/event";
+  import WinBtns from "./lib/winBtns.svelte";
+    import Brand from "./lib/svgs/Brand.svelte";
+  onMount(async () => {
+    const unlisten = await listen("tauri://file-drop", async (event) => {
+      let dropPath = event.payload;
+      if (!dropPath) return;
+      console.log(dropPath);
+      if (isImageFormat(dropPath[0])) {
+        console.log("true");
+        path = convertFileSrc(dropPath[0]);
+      }
+      return unlisten();
+      // const dirIdx=event.payload[0].lastIndexOf('/');
+      // const dir=event.payload[0].substring(0,dirIdx);
+      // console.log(dir);
+      //   const entries = await readDir(dir);
+      // console.log(entries);
+    });
+  });
+  let status = { inEdit: false, panning: false, rotating: false };
+  let w, h;
   let img;
   let osh, osw;
   let canvas;
   let path;
   let ctx;
-  let start={x:0,y:0}
+  let start = { x: 0, y: 0 };
   let scale = 1.0;
-  let rotation=0;
-  let pointX=0;
-  let pointY=0;
+  let rotation = 0;
+  let pointX = 0;
+  let pointY = 0;
   let transform;
-  let origin="0px 0px";
-  $:{
-    if(img){
-      transform="translate(" + pointX + "px, " + pointY + "px) scale(" + scale + ") rotate("+rotation+"deg)";
-      console.log(transform)
+  $: {
+    if (img) {
+      transform =
+        "translate(" +
+        pointX +
+        "px, " +
+        pointY +
+        "px) scale(" +
+        scale +
+        ") rotate(" +
+        rotation +
+        "deg)";
+      console.log(transform);
     }
   }
-//  $:{
-//   if(status.rotating){
-//     transPoint=`${scale*100}% ${scale*100}%`
-//   }else{
-//     transPoint="0% 0%";
-//   }
-//   console.log(transPoint)
-//  }
- 
-  $: console.log(pointX,pointY)
+  //  $:{
+  //   if(status.rotating){
+  //     transPoint=`${scale*100}% ${scale*100}%`
+  //   }else{
+  //     transPoint="0% 0%";
+  //   }
+  //   console.log(transPoint)
+  //  }
+
+  $: console.log(pointX, pointY);
   const render = () => {
     img = new Image();
     img.src = path;
@@ -66,220 +74,373 @@ onMount(async()=>{
 </script>
 
 <svelte:window class="" bind:innerHeight={osh} bind:innerWidth={osw} />
-<div style="border-radius: 10px;" class={`relative flex items-center justify-center h-screen py-8 px-8 bg-slate-100 `}>
-  <div data-tauri-drag-region  class="fixed top-0 z-50 h-8 w-full flex justify-between items-center px-4">
-    
-    <div></div>
+<div
+  style="border-radius: 10px;"
+  class={`relative flex items-center justify-center h-screen py-8 px-8 bg-gray-50 `}
+>
+  <div
+    data-tauri-drag-region
+    class="fixed top-0 z-50 h-8 w-full flex justify-between items-center px-4"
+  >
+    <div><Brand color="fill-slate-600" width="w-20" height="h-8"></Brand></div>
     <div class="flex gap-4">
-    <button
-      on:click={async () => {
-        let imgSrc = await open({
-          multiple: false,
-          filters: [
-            {
-              name: "Image",
-              extensions: ["png", "jpeg"],
-            },
-          ],
-        });
+      <button data-tooltip="Open image file"
+        title="open image"
+        on:click={async () => {
+          let imgSrc = await open({
+            multiple: false,
+            filters: [
+              {
+                name: "Image",
+                extensions: ["png", "jpeg"],
+              },
+            ],
+          });
 
-        if (imgSrc) {
-          if(status.inEdit){
-            path = convertFileSrc(imgSrc.toString());
-            render()
-          }else{
-            scale=1.0;
-            rotation=0;
-            pointX=0;
-            pointY=0;
-            path = convertFileSrc(imgSrc.toString());
-            // setTransform()
+          if (imgSrc) {
+            if (status.inEdit) {
+              path = convertFileSrc(imgSrc.toString());
+              render();
+            } else {
+              scale = 1.0;
+              rotation = 0;
+              pointX = 0;
+              pointY = 0;
+              path = convertFileSrc(imgSrc.toString());
+              // setTransform()
+            }
           }
-        }
-      }}
-      class="hover:bg-gray-300 hover:fill-white"
-    >
-      <svg
-        class="h-4 w-4"
-        viewBox="0 0 1024 1024"
-        version="1.1"
-        xmlns="http://www.w3.org/2000/svg"
-        width="200"
-        height="200"
-        ><path
-          d="M757.938 202H567c-24.852 0-45-20.148-45-45S542.148 112 567 112h300c24.852 0 45 20.148 45 45v300c0 24.852-20.148 45-45 45S822 481.852 822 457v-191.78L540.73 544.91c-17.622 17.524-46.116 17.444-63.64-0.18-17.524-17.622-17.444-46.116 0.18-63.64L757.938 202zM867 652c24.852 0 45 20.148 45 45V762c0 82.842-67.158 150-150 150H262c-82.842 0-150-67.158-150-150V262c0-82.842 67.158-150 150-150h65c24.852 0 45 20.148 45 45S351.852 202 327 202H262c-33.138 0-60 26.862-60 60v500c0 33.138 26.862 60 60 60h500c33.138 0 60-26.862 60-60v-65c0-24.852 20.148-45 45-45z"
-        /></svg
+        }}
+        class="hover:bg-gray-500 hover:fill-white"
       >
-    </button>
-    <button
-      on:click={() => {
-        scale *= 1.05;
-        // render()
-      }}
-      class="hover:bg-gray-300 hover:fill-white"
-    >
-      <svg
-        class="h-4 w-4"
-        viewBox="0 0 1024 1024"
-        version="1.1"
-        xmlns="http://www.w3.org/2000/svg"
-        width="200"
-        height="200"
-        ><path
-          d="M945.066667 898.133333l-189.866667-189.866666c55.466667-64 87.466667-149.333333 87.466667-241.066667 0-204.8-168.533333-373.333333-373.333334-373.333333S96 264.533333 96 469.333333 264.533333 842.666667 469.333333 842.666667c91.733333 0 174.933333-34.133333 241.066667-87.466667l189.866667 189.866667c6.4 6.4 14.933333 8.533333 23.466666 8.533333s17.066667-2.133333 23.466667-8.533333c8.533333-12.8 8.533333-34.133333-2.133333-46.933334zM469.333333 778.666667C298.666667 778.666667 160 640 160 469.333333S298.666667 160 469.333333 160 778.666667 298.666667 778.666667 469.333333 640 778.666667 469.333333 778.666667z"
-        /><path
-          d="M597.333333 437.333333h-96V341.333333c0-17.066667-14.933333-32-32-32s-32 14.933333-32 32v96H341.333333c-17.066667 0-32 14.933333-32 32s14.933333 32 32 32h96V597.333333c0 17.066667 14.933333 32 32 32s32-14.933333 32-32v-96H597.333333c17.066667 0 32-14.933333 32-32s-14.933333-32-32-32z"
-        /></svg
+        <svg
+          class="h-4 w-4"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          width="200"
+          height="200"
+          ><path
+            d="M928 144H96a32 32 0 0 0-32 32v672a32 32 0 0 0 32 32h478.08v-64h-105.6l233.6-259.52L768 611.84l41.28-48.64-89.6-75.52a32 32 0 0 0-44.48 2.88l-177.92 197.76-139.2-120.64a32 32 0 0 0-43.52 1.6L128 755.84V208h768v273.92h64V176a32 32 0 0 0-32-32zM338.56 635.84L454.4 736l-67.2 74.56 6.08 5.44H160z"
+          /><path
+            d="M448 384m-80 0a80 80 0 1 0 160 0 80 80 0 1 0-160 0Z"
+          /><path
+            d="M848 640h-64v112H672v64h112V928h64v-112H960v-64h-112V640z"
+          /></svg
+        >
+      </button>
+      <button
+        on:click={async () => {
+          let imgSrc = await open({
+            multiple: false,
+            filters: [
+              {
+                name: "Image",
+                extensions: ["png", "jpeg"],
+              },
+            ],
+          });
+
+          if (imgSrc) {
+            if (status.inEdit) {
+              path = convertFileSrc(imgSrc.toString());
+              render();
+            } else {
+              scale = 1.0;
+              rotation = 0;
+              pointX = 0;
+              pointY = 0;
+              path = convertFileSrc(imgSrc.toString());
+              // setTransform()
+            }
+          }
+        }}
+        class="hover:bg-gray-300 hover:fill-white"
       >
-    </button>
-    <button
-      on:click={() => {
-        scale *= 0.95;
-        // render()
-      }}
-      class="hover:bg-gray-300 hover:fill-white"
-    >
-      <svg
-        class="h-4 w-4"
-        viewBox="0 0 1024 1024"
-        version="1.1"
-        xmlns="http://www.w3.org/2000/svg"
-        width="200"
-        height="200"
-        ><path
-          d="M637 443H325c-4.4 0-8 3.6-8 8v60c0 4.4 3.6 8 8 8h312c4.4 0 8-3.6 8-8v-60c0-4.4-3.6-8-8-8z"
-        /><path
-          d="M921 867L775 721c122.1-148.9 113.6-369.5-26-509-148-148.1-388.4-148.1-537 0-148.1 148.6-148.1 389 0 537 139.5 139.6 360.1 148.1 509 26l146 146c3.2 2.8 8.3 2.8 11 0l43-43c2.8-2.7 2.8-7.8 0-11zM696 696c-118.8 118.7-311.2 118.7-430 0-118.7-118.8-118.7-311.2 0-430 118.8-118.7 311.2-118.7 430 0 118.7 118.8 118.7 311.2 0 430z"
-        /></svg
+        <svg
+          class="h-4 w-4"
+          viewBox="0 0 1170 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          width="200"
+          height="200"
+          ><path
+            d="M34.677862 1020.942998a42.224834 42.224834 0 0 1-14.71182-3.343595c-0.573188 0-1.241907-0.668719-1.910626-1.337438s-1.337438-0.668719-2.006158-1.337438a26.748764 26.748764 0 0 1-8.024629-6.687191c-0.668719-0.668719-1.337438-0.668719-1.337438-1.337439s-0.668719-0.668719-0.668719-1.337438-0.668719-1.337438-0.668719-2.006157a34.295737 34.295737 0 0 1-3.343596-8.597817c-0.668719-2.006157-0.668719-3.343595-1.337438-5.349753a2.483814 2.483814 0 0 0-0.668719-2.006157V121.32475C0 54.643903 60.662375 0 134.699132 0h248.381379c74.705476 0 134.699132 54.643903 134.699133 121.32475v8.693349h364.929564c46.714805 0 84.736263 34.677862 84.736263 78.049071v138.806979h166.033398a33.531486 33.531486 0 0 1 27.321952 13.947569 35.442112 35.442112 0 0 1 4.681034 30.665548l-179.598844 543.477563c-17.291165 51.395839-68.687004 85.97817-128.776191 85.978169H34.677862zM309.521411 414.223715c-29.996828 0-56.076873 15.953727-63.337252 39.358895L82.061386 952.542588h777.051591c30.092359 0 56.076873-16.049258 64.101502-39.358895l164.027241-498.959978zM135.367851 68.018285c-36.684019 0-66.87191 23.978356-66.871909 53.306465v637.098237l4.681033 0.668719L181.509469 432.183599c16.717977-51.300308 68.687004-85.97817 128.107473-85.978169h590.192369V207.398451c0-4.012315-6.59166-10.030786-15.953727-10.030786H484.248157a34.104674 34.104674 0 0 1-34.009142-34.009143v-42.702491c0-29.328109-29.996828-53.306465-66.87191-53.306465h-248.381379z"
+          /></svg
+        >
+      </button>
+      <button
+        on:click={() => {
+          scale *= 1.05;
+          // render()
+        }}
+        class="hover:bg-gray-300 hover:fill-white"
       >
-    </button>
-    <button on:click={()=>{
+        <svg
+          class="h-4 w-4"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          width="200"
+          height="200"
+          ><path
+            d="M945.066667 898.133333l-189.866667-189.866666c55.466667-64 87.466667-149.333333 87.466667-241.066667 0-204.8-168.533333-373.333333-373.333334-373.333333S96 264.533333 96 469.333333 264.533333 842.666667 469.333333 842.666667c91.733333 0 174.933333-34.133333 241.066667-87.466667l189.866667 189.866667c6.4 6.4 14.933333 8.533333 23.466666 8.533333s17.066667-2.133333 23.466667-8.533333c8.533333-12.8 8.533333-34.133333-2.133333-46.933334zM469.333333 778.666667C298.666667 778.666667 160 640 160 469.333333S298.666667 160 469.333333 160 778.666667 298.666667 778.666667 469.333333 640 778.666667 469.333333 778.666667z"
+          /><path
+            d="M597.333333 437.333333h-96V341.333333c0-17.066667-14.933333-32-32-32s-32 14.933333-32 32v96H341.333333c-17.066667 0-32 14.933333-32 32s14.933333 32 32 32h96V597.333333c0 17.066667 14.933333 32 32 32s32-14.933333 32-32v-96H597.333333c17.066667 0 32-14.933333 32-32s-14.933333-32-32-32z"
+          /></svg
+        >
+      </button>
+      <button
+        on:click={() => {
+          scale *= 0.95;
+          // render()
+        }}
+        class="hover:bg-gray-300 hover:fill-white"
+      >
+        <svg
+          class="h-4 w-4"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          width="200"
+          height="200"
+          ><path
+            d="M637 443H325c-4.4 0-8 3.6-8 8v60c0 4.4 3.6 8 8 8h312c4.4 0 8-3.6 8-8v-60c0-4.4-3.6-8-8-8z"
+          /><path
+            d="M921 867L775 721c122.1-148.9 113.6-369.5-26-509-148-148.1-388.4-148.1-537 0-148.1 148.6-148.1 389 0 537 139.5 139.6 360.1 148.1 509 26l146 146c3.2 2.8 8.3 2.8 11 0l43-43c2.8-2.7 2.8-7.8 0-11zM696 696c-118.8 118.7-311.2 118.7-430 0-118.7-118.8-118.7-311.2 0-430 118.8-118.7 311.2-118.7 430 0 118.7 118.8 118.7 311.2 0 430z"
+          /></svg
+        >
+      </button>
+      <!-- <button on:click={()=>{
         status={...status,rotating:!status.rotating}
     }} class="hover:bg-gray-300 hover:fill-white">
       <svg class="h-4 w-4" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M853.333333 501.333333c-17.066667 0-32 14.933333-32 32v320c0 6.4-4.266667 10.666667-10.666666 10.666667H170.666667c-6.4 0-10.666667-4.266667-10.666667-10.666667V213.333333c0-6.4 4.266667-10.666667 10.666667-10.666666h320c17.066667 0 32-14.933333 32-32s-14.933333-32-32-32H170.666667c-40.533333 0-74.666667 34.133333-74.666667 74.666666v640c0 40.533333 34.133333 74.666667 74.666667 74.666667h640c40.533333 0 74.666667-34.133333 74.666666-74.666667V533.333333c0-17.066667-14.933333-32-32-32z" ></path><path d="M405.333333 484.266667l-32 125.866666c-2.133333 10.666667 0 23.466667 8.533334 29.866667 6.4 6.4 14.933333 8.533333 23.466666 8.533333h8.533334l125.866666-32c6.4-2.133333 10.666667-4.266667 14.933334-8.533333l300.8-300.8c38.4-38.4 38.4-102.4 0-140.8-38.4-38.4-102.4-38.4-140.8 0L413.866667 469.333333c-4.266667 4.266667-6.4 8.533333-8.533334 14.933334z m59.733334 23.466666L761.6 213.333333c12.8-12.8 36.266667-12.8 49.066667 0 12.8 12.8 12.8 36.266667 0 49.066667L516.266667 558.933333l-66.133334 17.066667 14.933334-68.266667z"></path></svg>
-    </button>
-    <button on:click={()=>{
-      
-      if(rotation===-270){
-        rotation=0;
-      }else{
-        rotation-=90
-      }
-    }} class="hover:bg-gray-300 hover:fill-white">
-      <svg class="h-4 w-4" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M118.102838 172.97354c-8.577353 1.840928-16.083304 5.950526-21.635763 13.023618s-7.763824 15.340383-6.63307 24.801872l17.483186 99.467409c1.001817 15.07637 5.414313 18.541285 18.651802 28.933983 12.355399 9.699919 26.732851 9.555633 34.616402 8.598842l84.314291-3.829212c17.342993-2.103918 30.53034-18.902512 28.458145-36.248575-2.072195-17.347087-18.84009-30.510898-36.183083-28.40698l-28.250415-2.172479C341.179496 112.313995 582.402443 83.048461 747.434104 212.611306c165.91375 130.254599 194.743356 371.529735 64.947197 536.8602-130.490983 166.213579-371.020128 194.593953-536.933878 64.339354-89.135086-69.977771-142.622278-176.275749-145.846716-290.272059 1.834788-11.42112-3.520173-22.77061-12.345166-29.698393-15.002692-11.778254-36.193317-8.407484-47.298236 5.737678-2.082428 2.65241-6.057973 9.534144-6.057973 9.534144l-0.128936 5.614881c-1.011027 4.922103-0.446162 9.652847 0.813528 13.499455 4.602831 132.22651 66.469877 255.107165 170.607656 336.862168 195.037045 153.11833 477.252615 118.880551 629.953436-75.624375s118.973672-476.781894-76.063373-629.901247C603.749634 14.066367 344.053963 35.973306 184.489828 206.514447c-3.470031 4.420683-20.694321 20.908192-25.047466 24.636097l-4.462638-30.655184c-9.379625-31.658024-36.876885-27.52182-36.876886-27.52182z"></path></svg>
-    </button>
-    <button on:click={()=>{
-      if(rotation===270){
-        rotation=0;
-      }else{
-        rotation+=90;
-      }
-    }} class="hover:bg-gray-300 hover:fill-white">
-      <svg class="h-4 w-4" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M512 64c160 0 304 83.2 384 217.6L896 256c0-19.2 12.8-32 32-32s32 12.8 32 32l0 128c0 19.2-12.8 32-32 32l-128 0c-19.2 0-32-12.8-32-32s12.8-32 32-32l60.8 0c-64-137.6-198.4-224-348.8-224C300.8 128 128 300.8 128 512s172.8 384 384 384c153.6 0 294.4-92.8 352-233.6 6.4-16 25.6-22.4 41.6-16 16 6.4 22.4 25.6 16 41.6C854.4 854.4 691.2 960 512 960 265.6 960 64 758.4 64 512S265.6 64 512 64z"></path></svg>
-    </button>
-  </div>
-  <div class="flex">
-    <div class="titlebar-button" id="titlebar-minimize">
-      <img
-        src="https://api.iconify.design/mdi:window-minimize.svg"
-        alt="minimize"
-      />
+    </button> -->
+      <button
+        on:click={() => {
+          if (rotation === -270) {
+            rotation = 0;
+          } else {
+            rotation -= 90;
+          }
+        }}
+        class="hover:bg-gray-300 hover:fill-white"
+      >
+        <svg
+          class="h-4 w-4"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          width="200"
+          height="200"
+          ><path
+            d="M118.102838 172.97354c-8.577353 1.840928-16.083304 5.950526-21.635763 13.023618s-7.763824 15.340383-6.63307 24.801872l17.483186 99.467409c1.001817 15.07637 5.414313 18.541285 18.651802 28.933983 12.355399 9.699919 26.732851 9.555633 34.616402 8.598842l84.314291-3.829212c17.342993-2.103918 30.53034-18.902512 28.458145-36.248575-2.072195-17.347087-18.84009-30.510898-36.183083-28.40698l-28.250415-2.172479C341.179496 112.313995 582.402443 83.048461 747.434104 212.611306c165.91375 130.254599 194.743356 371.529735 64.947197 536.8602-130.490983 166.213579-371.020128 194.593953-536.933878 64.339354-89.135086-69.977771-142.622278-176.275749-145.846716-290.272059 1.834788-11.42112-3.520173-22.77061-12.345166-29.698393-15.002692-11.778254-36.193317-8.407484-47.298236 5.737678-2.082428 2.65241-6.057973 9.534144-6.057973 9.534144l-0.128936 5.614881c-1.011027 4.922103-0.446162 9.652847 0.813528 13.499455 4.602831 132.22651 66.469877 255.107165 170.607656 336.862168 195.037045 153.11833 477.252615 118.880551 629.953436-75.624375s118.973672-476.781894-76.063373-629.901247C603.749634 14.066367 344.053963 35.973306 184.489828 206.514447c-3.470031 4.420683-20.694321 20.908192-25.047466 24.636097l-4.462638-30.655184c-9.379625-31.658024-36.876885-27.52182-36.876886-27.52182z"
+          /></svg
+        >
+      </button>
+      <button
+        on:click={() => {
+          if (rotation === 270) {
+            rotation = 0;
+          } else {
+            rotation += 90;
+          }
+        }}
+        class="hover:bg-gray-300 hover:fill-white"
+      >
+        <svg
+          class="h-4 w-4"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          width="200"
+          height="200"
+          ><path
+            d="M512 64c160 0 304 83.2 384 217.6L896 256c0-19.2 12.8-32 32-32s32 12.8 32 32l0 128c0 19.2-12.8 32-32 32l-128 0c-19.2 0-32-12.8-32-32s12.8-32 32-32l60.8 0c-64-137.6-198.4-224-348.8-224C300.8 128 128 300.8 128 512s172.8 384 384 384c153.6 0 294.4-92.8 352-233.6 6.4-16 25.6-22.4 41.6-16 16 6.4 22.4 25.6 16 41.6C854.4 854.4 691.2 960 512 960 265.6 960 64 758.4 64 512S265.6 64 512 64z"
+          /></svg
+        >
+      </button>
+      <button on:click={()=>{
+const result = fitSize(img, w, h, 0);
+        scale = result.ratio;
+        pointX = result.offsetX;
+        pointY = result.offsetY;
+      }} class="hover:bg-gray-400 p-0 hover:fill-white">
+        <svg
+          class="h-4 w-4"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          width="200"
+          height="200"
+          ><path
+            d="M912 648v232c0 17.673-14.327 32-32 32H648c0-35.346 28.654-64 64-64h136V712c0-34.993 28.084-63.426 62.942-63.991L912 648z m-792 0c30.619 0 55.498 24.573 55.992 55.074L176 704v144h144c30.619 0 55.498 24.573 55.992 55.074L376 904v8H144c-17.496 0-31.713-14.042-31.996-31.47L112 880V648h8z m537-313c17.496 0 31.713 14.042 31.996 31.47l0.004 0.53v290c0 17.496-14.042 31.713-31.47 31.996L657 689H367c-17.496 0-31.713-14.042-31.996-31.47L335 657V367c0-17.496 14.042-31.713 31.47-31.996L367 335h290z m-32 64H399v226h226V399z m255-287c17.496 0 31.713 14.042 31.996 31.47l0.004 0.53v232h-8c-30.619 0-55.498-24.573-55.992-55.074L848 320V176H704c-30.619 0-55.498-24.573-55.992-55.074L648 120v-8h232z m-504 0v8c0 30.928-25.072 56-56 56H176v144c0 30.928-25.072 56-56 56h-8V144c0-17.673 14.327-32 32-32h232z"
+            fill-opacity=".65"
+          /></svg
+        >
+      </button>
+      <button on:click={()=>{
+        scale=1.0;
+        pointX=0; 
+        pointY-0;
+      }} class="hover:bg-gray-400 p-0 hover:fill-white">
+        <svg
+          class="h-4 w-4"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          width="200"
+          height="200"
+          ><path
+            d="M864 128H160c-19.2 0-32 12.8-32 32v704c0 19.2 12.8 32 32 32h704c19.2 0 32-12.8 32-32V160c0-19.2-12.8-32-32-32z m-32 704H192V192h640v640z"
+          /><path
+            d="M320 384v288c0 19.2 12.8 32 32 32s32-12.8 32-32V352c0-19.2-12.8-32-32-32h-32c-19.2 0-32 12.8-32 32s12.8 32 32 32zM640 384v288c0 19.2 12.8 32 32 32s32-12.8 32-32V352c0-19.2-12.8-32-32-32h-32c-19.2 0-32 12.8-32 32s12.8 32 32 32z"
+          /><path d="M512 384m-32 0a32 32 0 1 0 64 0 32 32 0 1 0-64 0Z" /><path
+            d="M512 640m-32 0a32 32 0 1 0 64 0 32 32 0 1 0-64 0Z"
+          /></svg
+        >
+      </button>
+      <button class="hover:bg-gray-400 p-0 hover:fill-white">
+        <svg class="h-4 w-4" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M512 640c-70.592 0-128-57.408-128-128s57.408-128 128-128 128 57.408 128 128-57.408 128-128 128m0-320a192 192 0 0 0 0 384 192 192 0 0 0 0-384" ></path><path d="M693.216 735.552a291.744 291.744 0 0 1-40.512 27.52c-1.216 0.64-2.368 1.472-3.616 2.144a286.08 286.08 0 0 1-34.048 15.392L595.488 853.6l-9.28 34.592c-0.576 0.128-1.152 0.32-1.76 0.384l-8.736 1.632c-3.52 0.64-7.104 1.088-10.656 1.6A357.152 357.152 0 0 1 512 895.552c-5.216 0-10.464-0.128-15.68-0.32l-8.64-0.48a355.936 355.936 0 0 1-28.736-2.944c-3.52-0.512-7.072-0.96-10.624-1.6a418.496 418.496 0 0 1-8.736-1.6l-1.76-0.416-9.28-34.56-19.584-73.024a286.784 286.784 0 0 1-47.84-23.776 287.488 287.488 0 0 1-30.304-21.28l-72.96 19.552-34.56 9.28-1.184-1.376a237.504 237.504 0 0 1-5.792-6.72c-2.304-2.784-4.512-5.664-6.752-8.512a315.84 315.84 0 0 1-16.928-23.424c-1.6-2.336-3.104-4.768-4.64-7.168a337.92 337.92 0 0 1-15.68-27.168 435.84 435.84 0 0 1-3.936-7.68c-1.536-3.104-3.072-6.208-4.512-9.344a362.912 362.912 0 0 1-7.296-17.024c-1.344-3.328-2.688-6.656-3.968-9.984l-2.976-8.448-0.512-1.696 25.184-25.184 53.568-53.632a292.8 292.8 0 0 1-3.68-41.28c0-1.28-0.192-2.496-0.192-3.744 0-1.28 0.192-2.464 0.192-3.744a292.8 292.8 0 0 1 3.68-41.28l-53.568-53.632-25.184-25.184a438.656 438.656 0 0 1 3.488-10.144c1.28-3.36 2.624-6.688 3.968-10.048a375.68 375.68 0 0 1 52.992-91.776c2.24-2.848 4.448-5.696 6.72-8.48 1.92-2.24 3.84-4.48 5.824-6.72l1.184-1.376 34.56 9.28 72.96 19.52c9.568-7.776 19.744-14.72 30.304-21.28l4.064-2.464a283.68 283.68 0 0 1 43.776-21.28l19.584-73.024 9.28-34.56 1.76-0.416c2.88-0.544 5.76-1.12 8.704-1.6 3.52-0.608 7.168-1.12 10.752-1.6 6.08-0.864 12.16-1.6 18.336-2.208a362.752 362.752 0 0 1 19.008-1.184c5.184-0.224 10.4-0.384 15.616-0.384 5.216 0 10.464 0.16 15.648 0.384a362.752 362.752 0 0 1 19.008 1.184c6.08 0.576 12.224 1.344 18.304 2.24 3.616 0.448 7.2 0.96 10.784 1.536l8.704 1.632 1.76 0.384 9.28 34.592 19.52 72.992c11.712 4.512 23.168 9.472 34.08 15.392 1.248 0.672 2.4 1.504 3.616 2.176 14.304 8.064 27.84 17.216 40.512 27.52l72.96-19.584 34.528-9.248 1.216 1.344c1.92 2.24 3.904 4.48 5.76 6.752 2.304 2.752 4.48 5.632 6.72 8.448a358.887 358.887 0 0 1 11.136 14.848c1.984 2.816 3.904 5.696 5.824 8.544l4.672 7.232a357.472 357.472 0 0 1 19.616 34.88A397.184 397.184 0 0 1 867.424 368c1.344 3.328 2.72 6.656 4 10.048a370.777 370.777 0 0 1 2.944 8.384c0.192 0.576 0.32 1.152 0.544 1.728l-25.184 25.184-53.6 53.6a291.084 291.084 0 0 1 3.488 36.896c0.064 2.72 0.384 5.44 0.384 8.16 0 2.752-0.32 5.44-0.384 8.16a291.136 291.136 0 0 1-3.52 36.864l53.632 53.632 25.184 25.184-0.544 1.696c-0.96 2.816-1.92 5.6-2.944 8.384-1.28 3.392-2.624 6.72-4 10.08a376.32 376.32 0 0 1-11.776 26.336 435.84 435.84 0 0 1-11.456 21.44c-2.624 4.544-5.376 8.992-8.16 13.44-1.536 2.368-3.072 4.8-4.64 7.136a315.84 315.84 0 0 1-16.96 23.456c-2.24 2.88-4.48 5.696-6.72 8.448-1.92 2.304-3.84 4.512-5.792 6.752-0.384 0.48-0.8 0.896-1.216 1.344l-34.56-9.248-72.96-19.52zM388.096 874.88c-2.624-0.896-5.28-1.728-7.872-2.688l-3.328-1.216-3.328-1.28c4.896 1.92 9.856 3.584 14.816 5.248l-0.32-0.064z m-119.424-66.368l-2.656-2.24c-2.144-1.824-4.224-3.712-6.336-5.568l-0.224-0.192c3.968 3.52 7.936 6.976 12.064 10.272l-2.88-2.24z m623.776-245.664l-0.192-0.16-0.096-0.128h-0.032l-29.184-29.216C863.36 526.24 864 519.2 864 512c0-7.232-0.64-14.272-1.056-21.376l29.184-29.184 0.128-0.128 0.192-0.192 54.72-54.72a444.032 444.032 0 0 0-18.4-57.376 449.664 449.664 0 0 0-28.8-61.024c-11.424-19.84-24.576-38.08-38.432-55.456a449.024 449.024 0 0 0-40.48-44.64l-74.752 20.032-0.064 0.032-0.224 0.064-0.16 0.032h-0.032l-39.424 10.56a348.448 348.448 0 0 0-37.472-21.376l-10.624-39.68-0.032-0.064-0.032-0.16-0.064-0.224v-0.064l-20.032-74.752a447.68 447.68 0 0 0-58.88-12.736A448.128 448.128 0 0 0 512 64c-22.912 0-45.248 2.24-67.232 5.568-20.096 3.04-39.776 7.136-58.88 12.736l-20.032 74.752-0.032 0.064-0.064 0.224-0.032 0.16v0.064l-10.656 39.68c-12.928 6.464-25.504 13.472-37.472 21.44l-39.392-10.56-0.064-0.064h-0.16l-0.224-0.096h-0.064l-74.72-20.064c-14.432 13.76-27.84 28.8-40.48 44.64A446.816 446.816 0 0 0 124.032 288c-11.456 19.84-20.672 40.32-28.8 61.024A450.496 450.496 0 0 0 76.8 406.4l54.72 54.72v0.064l0.224 0.16 0.096 0.128v0.032l29.216 29.184C160.64 497.76 160 504.8 160 512c0 7.2 0.64 14.208 1.088 21.312l-29.184 29.184-0.032 0.032-0.096 0.128-0.192 0.192-0.032 0.032L76.8 617.6c4.704 19.328 11.008 38.464 18.4 57.344 8.128 20.704 17.344 41.216 28.8 61.056 11.456 19.84 24.576 38.08 38.464 55.424 12.672 15.872 26.048 30.88 40.48 44.64l74.72-20.032h0.064l0.224-0.064 0.16-0.064h0.064l39.36-10.56c12 7.936 24.576 14.912 37.504 21.376l10.656 39.712v0.224l0.096 0.224v0.032l20.064 74.752c19.104 5.6 38.784 9.728 58.88 12.736a447.68 447.68 0 0 0 67.2 5.6c22.976 0 45.28-2.24 67.296-5.6a442.56 442.56 0 0 0 58.88-12.736l20.032-74.752 0.064-0.256 0.064-0.192 10.624-39.68c12.928-6.496 25.504-13.504 37.44-21.44l39.456 10.56v0.032l0.192 0.032 0.224 0.064h0.064l74.752 20.032c14.4-13.76 27.808-28.768 40.48-44.64A449.92 449.92 0 0 0 900 736c11.456-19.84 20.64-40.32 28.768-61.056 7.424-18.88 13.728-37.984 18.432-57.344l-54.72-54.72h-0.032z"></path></svg>
+      </button>
     </div>
-    <div class="titlebar-button" id="titlebar-maximize">
-      <img
-        src="https://api.iconify.design/mdi:window-maximize.svg"
-        alt="maximize"
-      />
-    </div>
-    <div class="titlebar-button" id="titlebar-close">
-      <img src="https://api.iconify.design/mdi:close.svg" alt="close" />
-    </div>
+    <WinBtns />
   </div>
-  </div>
-  
-    <div bind:clientWidth={w} bind:clientHeight={h} class="w-full overflow-hidden h-full relative">
-
-    
-      <!-- {#if path} -->
-      <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-      <img on:load={()=>{
-        console.log(w,h)
-        const result=fitSize(img,w,h,0)
-        scale=result.ratio;
-        pointX=result.offsetX;
-        pointY=result.offsetY;
+  {#if !path}
+  <div class="font-sans text-gray-400 absolute top-[50%]  ">please open image or folder or drag image or folder in this window</div>
+  {/if}
+  <div
+    bind:clientWidth={w}
+    bind:clientHeight={h}
+    class="w-full border-t overflow-hidden h-full relative"
+  >
+    <!-- {#if path} -->
+    <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+    <img
+      on:load={() => {
+        console.log(w, h);
+        const result = fitSize(img, w, h, 0);
+        scale = result.ratio;
+        pointX = result.offsetX;
+        pointY = result.offsetY;
       }}
-       on:wheel={e=>{
+      on:wheel={(e) => {
         e.preventDefault();
         var xs = (e.clientX - pointX) / scale,
           ys = (e.clientY - pointY) / scale,
-          delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
-        (delta > 0) ? (scale *= 1.1) : (scale /= 1.1);
+          delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
+        delta > 0 ? (scale *= 1.1) : (scale /= 1.1);
         pointX = e.clientX - xs * scale;
         pointY = e.clientY - ys * scale;
-      }} 
-      on:mousedown={e=>{
+      }}
+      on:mousedown={(e) => {
         e.preventDefault();
         start = { x: e.clientX - pointX, y: e.clientY - pointY };
-        console.log(start)
-        status={...status,panning:true}
+        console.log(start);
+        status = { ...status, panning: true };
       }}
-      on:mouseup={e=>{
-        status={...status,panning:false}
+      on:mouseup={(e) => {
+        status = { ...status, panning: false };
       }}
-      on:mousemove={e=>{
+      on:mousemove={(e) => {
         e.preventDefault();
         if (!status.panning) {
           return;
         }
-        pointX = (e.clientX - start.x);
-        pointY = (e.clientY - start.y);
+        pointX = e.clientX - start.x;
+        pointY = e.clientY - start.y;
       }}
       style="max-width:1000%;transform: {transform};"
-        class={`z-10 cursor-grab absolute object-cover ${path?"":"hidden"}`}
-        src={path}
-        bind:this={img}
-        alt="show"
-      />
-
-   </div>
-    {#if path}
-  <div class="absolute z-50 left-4" style="top:{osh / 2 - 24}px">
-
-    <button
-      class="h-10 rounded-full w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
-    >
-      <svg
-        class="h-8 w-8"
-        viewBox="0 0 1024 1024"
-        version="1.1"
-        xmlns="http://www.w3.org/2000/svg"
-        width="200"
-        height="200"
-        ><path
-          d="M384 512L731.733333 202.666667c17.066667-14.933333 19.2-42.666667 4.266667-59.733334-14.933333-17.066667-42.666667-19.2-59.733333-4.266666l-384 341.333333c-10.666667 8.533333-14.933333 19.2-14.933334 32s4.266667 23.466667 14.933334 32l384 341.333333c8.533333 6.4 19.2 10.666667 27.733333 10.666667 12.8 0 23.466667-4.266667 32-14.933333 14.933333-17.066667 14.933333-44.8-4.266667-59.733334L384 512z"
-        /></svg
-      >
-    </button>
+      class={`z-10 cursor-grab absolute object-cover ${path ? "" : "hidden"}`}
+      src={path}
+      bind:this={img}
+      alt="show"
+    />
   </div>
+  {#if path}
+    <div class="absolute z-50 left-4" style="top:{osh / 2 - 24}px">
+      <button
+        class="h-10 rounded-full w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
+      >
+        <svg
+          class="h-8 w-8"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          width="200"
+          height="200"
+          ><path
+            d="M384 512L731.733333 202.666667c17.066667-14.933333 19.2-42.666667 4.266667-59.733334-14.933333-17.066667-42.666667-19.2-59.733333-4.266666l-384 341.333333c-10.666667 8.533333-14.933333 19.2-14.933334 32s4.266667 23.466667 14.933334 32l384 341.333333c8.533333 6.4 19.2 10.666667 27.733333 10.666667 12.8 0 23.466667-4.266667 32-14.933333 14.933333-17.066667 14.933333-44.8-4.266667-59.733334L384 512z"
+          /></svg
+        >
+      </button>
+    </div>
   {/if}
   {#if path}
-  <div class="absolute z-50 right-4" style="top:{osh / 2 - 24}px">
-    <button
-      class="h-10 rounded-full w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
-    >
-      <svg
-        class="h-8 w-8"
-        viewBox="0 0 1024 1024"
-        version="1.1"
-        xmlns="http://www.w3.org/2000/svg"
-        width="200"
-        height="200"
-        ><path
-          d="M731.733333 480l-384-341.333333c-17.066667-14.933333-44.8-14.933333-59.733333 4.266666-14.933333 17.066667-14.933333 44.8 4.266667 59.733334L640 512 292.266667 821.333333c-17.066667 14.933333-19.2 42.666667-4.266667 59.733334 8.533333 8.533333 19.2 14.933333 32 14.933333 10.666667 0 19.2-4.266667 27.733333-10.666667l384-341.333333c8.533333-8.533333 14.933333-19.2 14.933334-32s-4.266667-23.466667-14.933334-32z"
-        /></svg
+    <div class="absolute z-50 right-4" style="top:{osh / 2 - 24}px">
+      <button
+        class="h-10 rounded-full w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
       >
-    </button>
-  </div>
+        <svg
+          class="h-8 w-8"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          width="200"
+          height="200"
+          ><path
+            d="M731.733333 480l-384-341.333333c-17.066667-14.933333-44.8-14.933333-59.733333 4.266666-14.933333 17.066667-14.933333 44.8 4.266667 59.733334L640 512 292.266667 821.333333c-17.066667 14.933333-19.2 42.666667-4.266667 59.733334 8.533333 8.533333 19.2 14.933333 32 14.933333 10.666667 0 19.2-4.266667 27.733333-10.666667l384-341.333333c8.533333-8.533333 14.933333-19.2 14.933334-32s-4.266667-23.466667-14.933334-32z"
+          /></svg
+        >
+      </button>
+    </div>
   {/if}
 </div>
+
+<style>
+  button {
+  position: relative;
+}
+
+button::before,
+button::after {
+  --scale: 0;
+  --arrow-size: 10px;
+  --tooltip-color: rgb(156 163 175 / var(--tw-bg-opacity));
+  position: absolute;
+  bottom: -.25rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(var(--translate-y, 0)) scale(var(--scale));
+  transition: 150ms transform;
+  transform-origin: top center;
+}
+
+button::before {
+  --translate-y: calc(100% + var(--arrow-size));
+
+  content: attr(data-tooltip);
+  color: white;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-radius: .3rem;
+  text-align: center;
+  font-size: 8px;
+  width: max-content;
+  background: var(--tooltip-color);
+}
+
+button:hover::before,
+button:hover::after {
+  --scale: 1;
+}
+
+button::after {
+  --translate-y: calc(1 * var(--arrow-size));
+  content: '';
+  border: var(--arrow-size) solid transparent;
+  border-bottom-color: var(--tooltip-color);
+  transform-origin: bottom center;
+}
+  </style>
