@@ -5,12 +5,22 @@
     import { onMount, tick } from "svelte";
     import { fitSize} from "./funcs/image";
     import { listen } from '@tauri-apps/api/event';
+    import { readDir, BaseDirectory } from '@tauri-apps/api/fs';
 onMount(async()=>{
-  await listen('tauri://file-drop', (event) => {
-    if(event.payload){
+  await listen('tauri://file-drop', async(event) => {
+    if(!event.payload)return;
+    const idx=event.payload.toString().lastIndexOf('.');
+    const ext=event.payload.toString().substring(idx+1);
+    const imgExtArr=["jpg","jpeg","png","gif","JPG","JPEG","GIF","PNG"];
+    console.log(ext);
+    if(imgExtArr.includes(ext)){
       path=convertFileSrc(event.payload)
     }
-  console.log(`event ${event.windowLabel} happened, payload: ${event.payload}`);
+    const dirIdx=event.payload.toString().lastIndexOf('/');
+    const dir=event.payload.toString().substring(0,dirIdx);
+    console.log(dir);
+    const entries = await readDir(dir);
+  console.log(entries);
 });
 })
   let status={inEdit:false,panning:false,rotating:false}
