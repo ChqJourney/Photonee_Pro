@@ -2,8 +2,17 @@
   import { open } from "@tauri-apps/api/dialog";
   import { convertFileSrc } from "@tauri-apps/api/tauri";
   import { appWindow } from '@tauri-apps/api/window'
-    import { tick } from "svelte";
+    import { onMount, tick } from "svelte";
     import { fitSize} from "./funcs/image";
+    import { listen } from '@tauri-apps/api/event';
+onMount(async()=>{
+  await listen('tauri://file-drop', (event) => {
+    if(event.payload){
+      path=convertFileSrc(event.payload)
+    }
+  console.log(`event ${event.windowLabel} happened, payload: ${event.payload}`);
+});
+})
   let status={inEdit:false,panning:false,rotating:false}
   let w,h;
   let img;
