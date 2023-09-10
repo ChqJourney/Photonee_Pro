@@ -3,7 +3,8 @@
      import { convertFileSrc } from "@tauri-apps/api/tauri";
     import { createEventDispatcher } from "svelte";
     import { fitSize } from "../funcs/image";
-    import { imageStore } from "../store";
+    import { dataStore, imageStore } from "../store";
+    import { readDir } from "@tauri-apps/api/fs";
     const dispatch = createEventDispatcher();
     export let img;
     export let containerW,containerH;
@@ -17,6 +18,7 @@
   <button data-tooltip="Open image file"
     title="open image"
     on:click={async () => {
+      
       let imgSrc = await open({
         multiple: false,
         filters: [
@@ -29,8 +31,7 @@
 
       if (imgSrc) {
         let path = convertFileSrc(imgSrc.toString());
-        dispatch("view-action",{...$imageStore,path:path})
-       
+        dispatch("source-action",{...$dataStore,mode:"file",currentIdx:0,source:[path]})
       }
     }}
     class="hover:bg-gray-500 hover:fill-white"
@@ -53,20 +54,20 @@
   </button>
   <button data-tooltip="Open folder"
     on:click={async () => {
+      
       let imgSrc = await open({
+        directory:true,
         multiple: false,
-        filters: [
-          {
-            name: "Image",
-            extensions: ["png", "jpeg"],
-          },
-        ],
       });
 
       if (imgSrc) {
-         
-         let path = convertFileSrc(imgSrc.toString());
+        console.log(imgSrc)
+        const entries = await readDir(imgSrc.toString());
+        console.log(entries)
+         let paths = entries.map(v=>{return convertFileSrc(v.path)});
+         dispatch("source-action",{...$dataStore,mode:"folder",currentIdx:0,source:[...paths]})
       }
+      
     }}
     class="hover:bg-gray-300 hover:fill-white"
   >

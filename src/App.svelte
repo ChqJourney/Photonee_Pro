@@ -19,16 +19,14 @@
 
         let dropPath = event.payload;
         if (!dropPath) return;
-        console.log(event);
-        clearImage();
+        // clearImage();
         if (isImageFormat(dropPath[0])) {
-          $imageStore = {...$imageStore,path:convertFileSrc(dropPath[0])};
+          $dataStore.source=[convertFileSrc(dropPath[0])];
         }
       }else{
-
-       
         const entries = await readDir(event.payload[0]);
-        $dataStore={...$dataStore,source:[...entries.map(v=>{return v.path})]}
+        // clearImage()
+        $dataStore={...$dataStore,source:[...entries.map(v=>{return convertFileSrc(v.path)})]}
         console.log($dataStore.source);
       }
     });
@@ -82,20 +80,26 @@
     
 
     <div class="flex gap-4" >
-     <ToolBar on:view-action={e=>{
-      $imageStore={...$imageStore,path:e.detail.path,scale:e.detail.scale,pointX:e.detail.pointX, pointY:e.detail.pointY,rotation:e.detail.rotation}
-      
+     <ToolBar
+      on:view-action={e=>{
+          $imageStore={...$imageStore,scale:e.detail.scale,pointX:e.detail.pointX, pointY:e.detail.pointY,rotation:e.detail.rotation}
+      }}
+      on:source-action={e=>{
+        // clearImage()
+        $dataStore={...$dataStore,source:[...e.detail.source],mode:e.detail.mode,currentIdx:e.detail.currentIdx}
+     
+      console.log($dataStore)
      }} img={img} containerH={h} containerW={w}></ToolBar>
     </div>
     
       <WinBtns/>
   </TopBar>
-  {#if !$imageStore.path}
+  {#if $dataStore.source.length===0}
     <div class="font-sans text-gray-400 absolute top-[50%]">
       please drag image or folder to this window and drop
     </div>
   {/if}
-  {#if isFileHover}
+  <!-- {#if isFileHover}
   <div class="absolute">
     <svg class="h-48 w-48" viewBox="0 0 1097 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M365.714286 329.142857a109.750857 109.750857 0 0 1-219.428572 0 109.750857 109.750857 0 0 1 219.428572 0z m585.142857 219.428572v256H146.285714v-109.714286l182.857143-182.857143 91.428572 91.428571 292.571428-292.571428z m54.857143-402.285715h-914.285715c-9.728 0-18.285714 8.557714-18.285714 18.285715v694.857142c0 9.728 8.557714 18.285714 18.285714 18.285715h914.285715c9.728 0 18.285714-8.557714 18.285714-18.285715v-694.857142c0-9.728-8.557714-18.285714-18.285714-18.285715z m91.428571 18.285715v694.857142c0 50.285714-41.142857 91.428571-91.428571 91.428572h-914.285715A91.684571 91.684571 0 0 1 0 859.428571v-694.857142C0 114.285714 41.142857 73.142857 91.428571 73.142857h914.285715C1056 73.142857 1097.142857 114.285714 1097.142857 164.571429z" ></path></svg>
   </div>
@@ -103,7 +107,7 @@
   <div class="absolute">
     <svg class="h-48 w-48" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M0 184.32a81.92 81.92 0 0 1 81.92-81.92h189.57312a81.92 81.92 0 0 1 69.90848 39.19872L373.76 194.56H839.68a81.92 81.92 0 0 1 81.92 81.92v634.88H40.96a40.96 40.96 0 0 1-40.96-40.96V184.32z" fill="#40A9FF"></path><path d="M210.95424 307.2h725.54496a81.92 81.92 0 0 1 80.66048 96.23552l-87.21408 491.52A81.92 81.92 0 0 1 849.28512 962.56H71.68l57.7536-581.5296A81.92 81.92 0 0 1 210.95424 307.2z" fill="#69C0FF"></path><path d="M0 880.64a41.35936 41.35936 0 0 0 70.656 5.53984L81.92 870.4v92.16a81.92 81.92 0 0 1-81.92-81.92z" fill="#69C0FF"></path><path d="M552.96 450.56L419.84 614.4h71.68v133.12h122.88V614.4h71.68L552.96 450.56zM491.52 768h122.88v40.96H491.52zM491.52 829.44h122.88v20.48H491.52z" fill="#91D5FF"></path></svg>
   </div>
-  {/if}
+  {/if} -->
   <div
     bind:clientWidth={w}
     bind:clientHeight={h}
@@ -114,8 +118,8 @@
       on:load={() => {
         console.log(w, h);
         const result = fitSize(img, w, h, 0);
+        console.log(result)
         $imageStore={...$imageStore,scale:result.ratio,pointX:result.offsetX,pointY:result.offsetY}
-       
       }}
       on:wheel={(e) => {
         e.preventDefault();
@@ -144,15 +148,19 @@
         
       }}
       style="max-width:1000%;transform: {transform};"
-      class={`z-10 cursor-grab absolute object-cover ${$imageStore.path ? "" : "hidden"}`}
-      src={$imageStore.path}
+      class={`z-10 cursor-grab absolute object-cover ${$dataStore.source[$dataStore.currentIdx] ? "" : "hidden"}`}
+      src={$dataStore.source[$dataStore.currentIdx]}
       bind:this={img}
       alt="show"
     />
   </div>
-  {#if $dataStore.source}
+  {#if $dataStore.source.length>1}
     <div class="absolute z-50 left-4" style="top:{osh / 2 - 24}px">
-      <button
+      <button on:click={()=>{
+        if($dataStore.currentIdx>0){
+          $dataStore.currentIdx-=1
+        }
+      }}
         class="h-10 rounded-full w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
       >
         <svg
@@ -169,9 +177,13 @@
       </button>
     </div>
   {/if}
-  {#if $dataStore.source}
+  {#if $dataStore.source.length>1}
     <div class="absolute z-50 right-4" style="top:{osh / 2 - 24}px">
-      <button
+      <button on:click={()=>{
+        if($dataStore.currentIdx<$dataStore.source.length-1){
+          $dataStore.currentIdx+=1
+        }
+      }}
         class="h-10 rounded-full w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
       >
         <svg

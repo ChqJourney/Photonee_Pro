@@ -16,7 +16,7 @@
         "all": false,
         "asset": true,
         "assetScope": [
-          "*"
+          "**"
         ]
       },
       "dialog": {
