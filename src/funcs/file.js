@@ -7,5 +7,13 @@ export const ext=(filePath)=>{
     return ext;
 }
 export const isFolder=(path)=>{
-    
+   
+      const slash=path.split("\\");
+      console.log(slash)
+      const last=slash[slash.length-1];
+      console.log(last)
+      if(!last.includes(".")){
+        return true;
+      }
+      return false;
 }
