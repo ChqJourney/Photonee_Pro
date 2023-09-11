@@ -29,6 +29,9 @@
         $dataStore={...$dataStore,source:[...entries.map(v=>{return convertFileSrc(v.path)})]}
         console.log($dataStore.source);
       }
+      console.log(isFileHover)
+      isFileHover=false;
+      console.log(isFileHover)
     });
     await listen("tauri://file-drop-hover",async(event)=>{
       console.log(event)
@@ -36,19 +39,19 @@
         $dataStore.mode="folder";
       }else{
         $dataStore.mode="file";
+        isFileHover=true;
       }
-      
+      console.log(isFileHover)
     })
-    
+    await listen("tauri://resize",e=>{
+      console.log(e)
+    })
   });
   let status = { inEdit: false, panning: false, rotating: false };
   let isFileHover=false;
   let w, h;
   let img;
   let osh, osw;
-  let canvas;
-  
-  let ctx;
   let start = { x: 0, y: 0 };
   
   let transform;
@@ -73,13 +76,13 @@
 <svelte:window class="" bind:innerHeight={osh} bind:innerWidth={osw} />
 <div
   style="border-radius: 10px;"
-  class={`relative flex items-center justify-center h-screen py-8 px-8 bg-gray-50 `}
+  class={`relative flex items-center justify-center h-screen py-10 px-8 bg-gray-50 `}
 >
   <TopBar>
-      <Brand color="fill-slate-600" width="w-20" height="h-8" />
+      <Brand color="fill-slate-600" width="w-20" height="h-10" />
     
 
-    <div class="flex gap-4" >
+    <div class="flex items-center justify-center gap-4" >
      <ToolBar
       on:view-action={e=>{
           $imageStore={...$imageStore,scale:e.detail.scale,pointX:e.detail.pointX, pointY:e.detail.pointY,rotation:e.detail.rotation}
@@ -111,7 +114,7 @@
   <div
     bind:clientWidth={w}
     bind:clientHeight={h}
-    class="w-full border-t overflow-hidden h-full relative"
+    class={`w-full ${isFileHover?"border border-dashed border-pink-500 rounded-md":"border-t"} overflow-hidden h-full relative`}
   >
     <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
     <img
