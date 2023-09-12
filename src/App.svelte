@@ -87,11 +87,7 @@
       please drag image or folder to this window and drop
     </div>
   {/if}
-  {#if $dataStore.mode==="folder"}
-  <div class="w-full z-50 fixed bottom-2">
-    <Thumbs/>
-  </div>
-  {/if}
+
   <div
     bind:clientWidth={w}
     bind:clientHeight={h}
@@ -136,6 +132,10 @@
       src={$dataStore.source[$dataStore.currentIdx]?.url??""}
       bind:this={img}
       alt="show" title={$dataStore.source[$dataStore.currentIdx]?.name??""}  />
+  </div>
+ 
+  <div class={`w-full ${$dataStore.mode==="file"?"hidden":""}`}>
+    <Thumbs/>
   </div>
   {#if $dataStore.source.length>1}
     <div class="absolute z-50 left-4" style="top:{osh / 2 - 24}px">
