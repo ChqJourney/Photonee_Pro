@@ -1,11 +1,9 @@
 <script>
      import { open } from "@tauri-apps/api/dialog";
-     import { convertFileSrc } from "@tauri-apps/api/tauri";
     import { createEventDispatcher } from "svelte";
     import { fitSize } from "../funcs/image";
     import { dataStore, imageStore } from "../store";
-    import { readDir } from "@tauri-apps/api/fs";
-    import { scale } from "svelte/transition";
+    import { dragHandling } from "../funcs/file";
     const dispatch = createEventDispatcher();
     export let img;
     export let containerW,containerH;
@@ -25,14 +23,14 @@
         filters: [
           {
             name: "Image",
-            extensions: ["png", "jpeg"],
+            extensions: ["png","bmp", "jpeg","jpg","git","webp","svg"],
           },
         ],
       });
 
       if (imgSrc) {
-        let path = convertFileSrc(imgSrc.toString());
-        dispatch("source-action",{...$dataStore,mode:"file",currentIdx:0,source:[path]})
+        const result=await dragHandling(imgSrc.toString());
+        dispatch("source-action",{...$dataStore,mode:"file",currentIdx:0,source:[...result.source]})
       }
     }}
     class="hover:bg-gray-500 rounded-md p-1 hover:fill-white"
@@ -62,11 +60,10 @@
       });
 
       if (imgSrc) {
-        console.log(imgSrc)
-        const entries = await readDir(imgSrc.toString());
-        console.log(entries)
-         let paths = entries.map(v=>{return convertFileSrc(v.path)});
-         dispatch("source-action",{...$dataStore,mode:"folder",currentIdx:0,source:[...paths]})
+        const result=await dragHandling(imgSrc.toString());
+      
+          $dataStore={...$dataStore,mode:result.mode,source:[...result.source]}
+          dispatch("source-action",{...$dataStore,mode:"folder",currentIdx:0,source:[...result.source]})
       }
       
     }}
@@ -178,7 +175,7 @@
     >
   </button>
   <button data-tooltip="fit image to window" on:click={()=>{
-const result = fitSize(img, containerW, containerH, 0);
+const result = fitSize(img, containerW, containerH, 36);
  
     dispatch("view-action",{...$imageStore,scale:result.ratio,pointX:result.offsetX,pointY:result.offsetY})
   }} class="hover:bg-gray-400 rounded-md p-1 hover:fill-white">
@@ -197,7 +194,7 @@ const result = fitSize(img, containerW, containerH, 0);
   </button>
   <button data-tooltip="restore image to its original size" on:click={()=>{
     if(img.naturalWidth<=containerW&&img.naturalHeight<=containerH){
-      const result=fitSize(img,containerW,containerH,0);
+      const result=fitSize(img,containerW,containerH,36);
       console.log('ddd')
       dispatch("view-action",{...$imageStore,scale:result.ratio,pointX:result.offsetX,pointY:result.offsetY})
     }else{
