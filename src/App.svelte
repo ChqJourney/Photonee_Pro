@@ -134,7 +134,7 @@
       alt="show" title={$dataStore.source[$dataStore.currentIdx]?.name??""}  />
   </div>
  
-  <div class={`w-full ${$dataStore.mode==="file"?"hidden":""}`}>
+  <div class={`w-full px-4 ${$dataStore.mode==="file"?"hidden":""}`}>
     <Thumbs/>
   </div>
   {#if $dataStore.source.length>1}
