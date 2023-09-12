@@ -106,7 +106,7 @@
       ]
     },
     "security": {
-      "csp": "default-src 'self'; img-src *;style-src 'unsafe-inline' *"
+      "csp": "default-src *; img-src * asset://localhost;style-src 'unsafe-inline' *"
     },
     "windows": [
       {
