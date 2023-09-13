@@ -10,7 +10,7 @@ export const ext=(filePath)=>{
     const ext=filePath.substring(idx+1);
     return ext;
 }
-const fileName=(fPath)=>{
+export const fileName=(fPath)=>{
   
   const arr= fPath.split("\\");
   return arr[arr.length-1];

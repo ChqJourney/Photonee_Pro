@@ -1,6 +1,6 @@
 <script>
   import { open } from "@tauri-apps/api/dialog";
-  import { convertFileSrc } from "@tauri-apps/api/tauri";
+  import { convertFileSrc, invoke } from "@tauri-apps/api/tauri";
   import { onMount, tick } from "svelte";
   import { fitSize, isImageFormat } from "./funcs/image";
   import { listen } from "@tauri-apps/api/event";
@@ -11,9 +11,14 @@
     import ToolBar from "./lib/ToolBar.svelte";
     import { clearImage, dataStore, imageStore } from "./store";
     import { exists, readDir } from "@tauri-apps/api/fs";
-    import { dragHandling } from "./funcs/file";
+    import { dragHandling, fileName } from "./funcs/file";
     import Thumbs from "./lib/Thumbs.svelte";
   onMount(async () => {
+    const file=await invoke("init_file");
+    console.log(file);
+    if(file){
+      $dataStore={...$dataStore,mode:"file",source:[{path:file,name:fileName(file),url:convertFileSrc(file)}]}
+    }
     const unlisten = await listen("tauri://file-drop", async (event) => {
       console.log($dataStore.mode)
 
