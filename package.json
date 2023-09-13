@@ -1,5 +1,5 @@
 {
-  "name": "Image_Try",
+  "name": "Image_viewer",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,7 +10,9 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@tauri-apps/api": "^1.4.0"
+    "@tauri-apps/api": "^1.4.0",
+    "exif-js": "https://github.com/exif-js/exif-js.git",
+    "svelte-i18n": "^3.7.4"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^2.4.2",

@@ -8,6 +8,7 @@ version = "0.0.0"
 dependencies = [
  "serde",
  "serde_json",
+ "sys-locale 0.3.1",
  "tauri",
  "tauri-build",
  "tauri-cli",
@@ -4087,6 +4088,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "sys-locale"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e801cf239ecd6ccd71f03d270d67dd53d13e90aab208bf4b8fe4ad957ea949b0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "sysctl"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4234,7 +4244,7 @@ dependencies = [
  "serde_repr",
  "serialize-to-javascript",
  "state",
- "sys-locale",
+ "sys-locale 0.2.4",
  "tar",
  "tauri-macros",
  "tauri-runtime",

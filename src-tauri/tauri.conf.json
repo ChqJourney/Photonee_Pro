@@ -7,8 +7,8 @@
     "withGlobalTauri": false
   },
   "package": {
-    "productName": "Image_Try",
-    "version": "0.0.0"
+    "productName": "Image Viewer",
+    "version": "0.1.0"
   },
   "tauri": {
     "allowlist": {
@@ -103,7 +103,20 @@
         "icons/128x128@2x.png",
         "icons/icon.icns",
         "icons/icon.ico"
-      ]
+      ],
+      "windows": {
+        "allowDowngrades": true,
+        "certificateThumbprint": null,
+        "digestAlgorithm": null,
+        "nsis": null,
+        "timestampUrl": null,
+        "tsp": false,
+        "webviewFixedRuntimePath": null,
+        "webviewInstallMode": {
+          "type": "skip"
+        },
+        "wix": null
+      }
     },
     "security": {
       "csp": "default-src *; img-src * asset://localhost;style-src 'unsafe-inline' *"
@@ -115,6 +128,8 @@
         "title": "Images",
         "width": 800,
         "height": 600,
+        "minWidth": 600,
+        "minHeight": 480,
         "decorations": false,
         "transparent": true,
         "titleBarStyle": "Overlay",

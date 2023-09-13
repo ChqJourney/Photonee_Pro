@@ -1,49 +1,52 @@
 <script>
-  import { open } from "@tauri-apps/api/dialog";
   import { convertFileSrc, invoke } from "@tauri-apps/api/tauri";
   import { onMount, tick } from "svelte";
   import { fitSize, isImageFormat } from "./funcs/image";
   import { listen } from "@tauri-apps/api/event";
   import WinBtns from "./lib/winBtns.svelte";
   import Brand from "./lib/svgs/Brand.svelte";
-  import SimpleBrand from "./lib/svgs/SimpleBrand.svelte";
   import TopBar from "./lib/TopBar.svelte";
-    import ToolBar from "./lib/ToolBar.svelte";
-    import { clearImage, dataStore, imageStore } from "./store";
-    import { exists, readDir } from "@tauri-apps/api/fs";
-    import { dragHandling, fileName } from "./funcs/file";
-    import Thumbs from "./lib/Thumbs.svelte";
+  import ToolBar from "./lib/ToolBar.svelte";
+  import { dataStore, imageStore, resetRotation } from "./store";
+  import { dragHandling, fileName } from "./funcs/file";
+  import Thumbs from "./lib/Thumbs.svelte";
+  import { _ } from "svelte-i18n";
   onMount(async () => {
-    const file=await invoke("init_file");
-    console.log(file);
-    if(file){
-      $dataStore={...$dataStore,mode:"file",source:[{path:file,name:fileName(file),url:convertFileSrc(file)}]}
+    const file = await invoke("init_file");
+    if (file) {
+      $dataStore = {
+        ...$dataStore,
+        mode: "file",
+        source: [
+          { path: file, name: fileName(file), url: convertFileSrc(file) },
+        ],
+      };
     }
     const unlisten = await listen("tauri://file-drop", async (event) => {
-      console.log($dataStore.mode)
-
-      const result=await dragHandling(event.payload[0]);
-      
-          $dataStore={...$dataStore,mode:result.mode,source:[...result.source]}
-     
-      isDragHover=false;
-      console.log(isDragHover)
+      const result = await dragHandling(event.payload[0]);
+      resetRotation();
+      $dataStore = {
+        ...$dataStore,
+        mode: result.mode,
+        source: [...result.source],
+      };
+      isDragHover = false;
     });
-    await listen("tauri://file-drop-hover",async(event)=>{
-      
-        isDragHover=true;
-    })
-    await listen("tauri://file-drop-cancelled",e=>{
-      isDragHover=false;
-    })
+    await listen("tauri://file-drop-hover", async (event) => {
+      isDragHover = true;
+    });
+    await listen("tauri://file-drop-cancelled", (e) => {
+      isDragHover = false;
+    });
   });
   let status = { inEdit: false, panning: false, rotating: false };
-  let isDragHover=false;
+  let isDragHover = false;
+  let isShowExif = true;
   let w, h;
   let img;
   let osh, osw;
   let start = { x: 0, y: 0 };
-  
+
   let transform;
   $: {
     if (img) {
@@ -52,15 +55,17 @@
         $imageStore.pointX +
         "px, " +
         $imageStore.pointY +
-        "px) scale(" +
-        $imageStore.scale +
-        ") rotate(" +
+        "px) scaleX(" +
+        $imageStore.scaleX +
+        ") scaleY(" +
+        $imageStore.scaleY +
+        ")" +
+        "rotate(" +
         $imageStore.rotation +
         "deg)";
       console.log(transform);
     }
   }
-  
 </script>
 
 <svelte:window class="" bind:innerHeight={osh} bind:innerWidth={osw} />
@@ -69,55 +74,98 @@
   class={`relative flex flex-col items-center justify-center h-screen py-10 px-8 bg-gray-50 `}
 >
   <TopBar>
-      <Brand color="fill-slate-600" width="w-20" height="h-10" />
-    
+    <Brand color="fill-slate-600" width="w-20" height="h-10" />
 
-    <div class="flex items-center justify-center gap-4" >
-     <ToolBar
-      on:view-action={e=>{
-          $imageStore={...$imageStore,scale:e.detail.scale,pointX:e.detail.pointX, pointY:e.detail.pointY,rotation:e.detail.rotation}
-      }}
-      on:source-action={e=>{
-        // clearImage()
-        $dataStore={...$dataStore,source:[...e.detail.source],mode:e.detail.mode,currentIdx:e.detail.currentIdx}
-     
-      console.log($dataStore)
-     }} img={img} containerH={h} containerW={w}></ToolBar>
+    <div class="flex items-center justify-center gap-4">
+      <ToolBar
+        on:view-action={(e) => {
+          $imageStore = {
+            ...$imageStore,
+            scaleX: e.detail.scaleX,
+            scaleY: e.detail.scaleY,
+            pointX: e.detail.pointX,
+            pointY: e.detail.pointY,
+            rotation: e.detail.rotation,
+          };
+        }}
+        on:source-action={(e) => {
+          // clearImage()
+          resetRotation();
+          $dataStore = {
+            ...$dataStore,
+            source: [...e.detail.source],
+            mode: e.detail.mode,
+            currentIdx: e.detail.currentIdx,
+          };
+
+          console.log($dataStore);
+        }}
+        {img}
+        containerH={h}
+        containerW={w}
+      />
     </div>
-    
-      <WinBtns/>
+
+    <WinBtns />
   </TopBar>
-  {#if $dataStore.source.length===0}
+  
+  {#if $dataStore.source.length === 0}
     <div class="font-sans text-gray-400 absolute top-[50%]">
-      please drag image or folder to this window and drop
+      {$_('drag_notice')}
     </div>
   {/if}
-
+ 
   <div
     bind:clientWidth={w}
     bind:clientHeight={h}
-    class={`w-full ${isDragHover?"border border-dashed border-pink-500 rounded-md":"border-t"} overflow-hidden h-full relative`}
+    class={`w-full ${
+      isDragHover
+        ? "border border-dashed border-pink-500 rounded-md"
+        : "border-t"
+    } overflow-hidden h-full relative`}
   >
+  {#if $dataStore.source.length !== 0 && isShowExif}
+  <div class="absolute w-full z-50 h-36 top-0 bg-slate-400">
+    <div>adfafadf</div>
+  </div>
+{/if}
     <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
     <img
       on:load={() => {
         console.log(w, h);
         const result = fitSize(img, w, h, 36);
-        console.log(result)
-        $imageStore={...$imageStore,scale:result.ratio,pointX:result.offsetX,pointY:result.offsetY}
+        $imageStore = {
+          ...$imageStore,
+          scaleX: result.ratio,
+          scaleY: result.ratio,
+          pointX: result.offsetX,
+          pointY: result.offsetY,
+        };
       }}
       on:wheel={(e) => {
         e.preventDefault();
-        var xs = (e.clientX - $imageStore.pointX) / $imageStore.scale,
-          ys = (e.clientY - $imageStore.pointY) / $imageStore.scale,
+        var xs = (e.clientX - $imageStore.pointX) / $imageStore.scaleX,
+          ys = (e.clientY - $imageStore.pointY) / $imageStore.scaleY,
           delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
-        delta > 0 ? ($imageStore.scale *= 1.1) : ($imageStore.scale /= 1.1);
-        $imageStore ={...$imageStore,pointX:e.clientX - xs * $imageStore.scale,pointY: e.clientY - ys * $imageStore.scale};
-        
+        if (delta > 0) {
+          $imageStore.scaleX *= 1.1;
+          $imageStore.scaleY *= 1.1;
+        } else {
+          $imageStore.scaleX /= 1.1;
+          $imageStore.scaleY /= 1.1;
+        }
+        $imageStore = {
+          ...$imageStore,
+          pointX: e.clientX - xs * $imageStore.scaleX,
+          pointY: e.clientY - ys * $imageStore.scaleY,
+        };
       }}
       on:mousedown={(e) => {
         e.preventDefault();
-        start = { x: e.clientX - $imageStore.pointX, y: e.clientY - $imageStore.pointY };
+        start = {
+          x: e.clientX - $imageStore.pointX,
+          y: e.clientY - $imageStore.pointY,
+        };
         console.log(start);
         status = { ...status, panning: true };
       }}
@@ -129,26 +177,34 @@
         if (!status.panning) {
           return;
         }
-        $imageStore ={...$imageStore,pointX: e.clientX - start.x,pointY:e.clientY - start.y};
-        
+        $imageStore = {
+          ...$imageStore,
+          pointX: e.clientX - start.x,
+          pointY: e.clientY - start.y,
+        };
       }}
       style="max-width:1000%;transform: {transform};"
-      class={`z-10 cursor-grab absolute object-cover ${$dataStore.source[$dataStore.currentIdx] ? "" : "hidden"}`}
-      src={$dataStore.source[$dataStore.currentIdx]?.url??""}
+      class={`z-10 cursor-grab absolute object-cover ${
+        $dataStore.source[$dataStore.currentIdx] ? "" : "hidden"
+      }`}
+      src={$dataStore.source[$dataStore.currentIdx]?.url ?? ""}
       bind:this={img}
-      alt="show" title={$dataStore.source[$dataStore.currentIdx]?.name??""}  />
+      alt="show"
+      title={$dataStore.source[$dataStore.currentIdx]?.name ?? ""}
+    />
   </div>
- 
-  <div class={`w-full px-4 ${$dataStore.mode==="file"?"hidden":""}`}>
-    <Thumbs/>
+
+  <div class={`w-full px-4 ${$dataStore.mode === "file" ? "hidden" : ""}`}>
+    <Thumbs />
   </div>
-  {#if $dataStore.source.length>1}
+  {#if $dataStore.source.length > 1}
     <div class="absolute z-50 left-4" style="top:{osh / 2 - 24}px">
-      <button on:click={()=>{
-        if($dataStore.currentIdx>0){
-          $dataStore.currentIdx-=1
-        }
-      }}
+      <button
+        on:click={() => {
+          if ($dataStore.currentIdx > 0) {
+            $dataStore.currentIdx -= 1;
+          }
+        }}
         class="h-10 rounded-full w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
       >
         <svg
@@ -165,13 +221,14 @@
       </button>
     </div>
   {/if}
-  {#if $dataStore.source.length>1}
+  {#if $dataStore.source.length > 1}
     <div class="absolute z-50 right-4" style="top:{osh / 2 - 24}px">
-      <button on:click={()=>{
-        if($dataStore.currentIdx<$dataStore.source.length-1){
-          $dataStore.currentIdx+=1
-        }
-      }}
+      <button
+        on:click={() => {
+          if ($dataStore.currentIdx < $dataStore.source.length - 1) {
+            $dataStore.currentIdx += 1;
+          }
+        }}
         class="h-10 rounded-full w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
       >
         <svg
@@ -189,5 +246,3 @@
     </div>
   {/if}
 </div>
-
-
