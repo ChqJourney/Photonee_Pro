@@ -1,44 +1,47 @@
 <script>
-     import { open } from "@tauri-apps/api/dialog";
-    import { createEventDispatcher } from "svelte";
-    import { fitSize } from "../funcs/image";
-    import { dataStore, imageStore } from "../store";
-    import { dragHandling } from "../funcs/file";
-    import {_} from "svelte-i18n"
-    import * as EXIF from "exif-js";
-    const dispatch = createEventDispatcher();
-    export let img;
-    export let containerW,containerH;
-   
+  import { open } from "@tauri-apps/api/dialog";
+  import { createEventDispatcher } from "svelte";
+  import { fitSize } from "../funcs/image";
+  import { clearImage, dataStore, imageStore } from "../store";
+  import { dragHandling } from "../funcs/file";
+  import { _ } from "svelte-i18n";
+  import * as EXIF from "exif-js";
+    import { scale } from "svelte/transition";
+  const dispatch = createEventDispatcher();
+  export let img;
+  export let containerW, containerH;
+  let isMenuShow = false;
 </script>
 
- 
-
-
 <div class="flex items-center gap-4 fill-violet-500">
-  <button data-tooltip={$_("open_image_file")}
+  <button
+    data-tooltip={$_("open_image_file")}
     title="open image"
     on:click={async () => {
-      
       let imgSrc = await open({
         multiple: false,
         filters: [
           {
             name: "Image",
-            extensions: ["png","bmp", "jpeg","jpg","git","webp","svg"],
+            extensions: ["png", "bmp", "jpeg", "jpg", "git", "webp", "svg"],
           },
         ],
       });
 
       if (imgSrc) {
-        const result=await dragHandling(imgSrc.toString());
-        dispatch("source-action",{...$dataStore,mode:"file",currentIdx:0,source:[...result.source]})
+        const result = await dragHandling(imgSrc.toString());
+        dispatch("source-action", {
+          ...$dataStore,
+          mode: "file",
+          currentIdx: 0,
+          source: [...result.source],
+        });
       }
     }}
-    class="hover:bg-gray-500 rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-500 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
-      class="h-6 w-6"
+      class="h-5 w-5"
       viewBox="0 0 1024 1024"
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
@@ -46,33 +49,39 @@
       height="200"
       ><path
         d="M928 144H96a32 32 0 0 0-32 32v672a32 32 0 0 0 32 32h478.08v-64h-105.6l233.6-259.52L768 611.84l41.28-48.64-89.6-75.52a32 32 0 0 0-44.48 2.88l-177.92 197.76-139.2-120.64a32 32 0 0 0-43.52 1.6L128 755.84V208h768v273.92h64V176a32 32 0 0 0-32-32zM338.56 635.84L454.4 736l-67.2 74.56 6.08 5.44H160z"
-      /><path
-        d="M448 384m-80 0a80 80 0 1 0 160 0 80 80 0 1 0-160 0Z"
-      /><path
+      /><path d="M448 384m-80 0a80 80 0 1 0 160 0 80 80 0 1 0-160 0Z" /><path
         d="M848 640h-64v112H672v64h112V928h64v-112H960v-64h-112V640z"
       /></svg
     >
   </button>
-  <button data-tooltip="Open folder"
+  <button
+    data-tooltip="Open folder"
     on:click={async () => {
-      
       let imgSrc = await open({
-        directory:true,
+        directory: true,
         multiple: false,
       });
 
       if (imgSrc) {
-        const result=await dragHandling(imgSrc.toString());
-      
-          $dataStore={...$dataStore,mode:result.mode,source:[...result.source]}
-          dispatch("source-action",{...$dataStore,mode:"folder",currentIdx:0,source:[...result.source]})
+        const result = await dragHandling(imgSrc.toString());
+
+        $dataStore = {
+          ...$dataStore,
+          mode: result.mode,
+          source: [...result.source],
+        };
+        dispatch("source-action", {
+          ...$dataStore,
+          mode: "folder",
+          currentIdx: 0,
+          source: [...result.source],
+        });
       }
-      
     }}
-    class="hover:bg-gray-300 rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
-      class="h-6 w-6"
+      class="h-5 w-5"
       viewBox="0 0 1170 1024"
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
@@ -83,15 +92,19 @@
       /></svg
     >
   </button>
-  <button data-tooltip="zoom in"
+  <button
+    data-tooltip="zoom in"
     on:click={() => {
-      
-      dispatch("view-action",{...$imageStore,scaleX:$imageStore.scaleX*1.05, scaleY:$imageStore.scaleY*1.05})
+      dispatch("view-action", {
+        ...$imageStore,
+        scaleX: $imageStore.scaleX * 1.05,
+        scaleY: $imageStore.scaleY * 1.05,
+      });
     }}
-    class="hover:bg-gray-300 rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
-      class="h-6 w-6"
+      class="h-5 w-5"
       viewBox="0 0 1024 1024"
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
@@ -104,15 +117,19 @@
       /></svg
     >
   </button>
-  <button data-tooltip="zoom out"
+  <button
+    data-tooltip="zoom out"
     on:click={() => {
-     
-      dispatch("view-action",{...$imageStore,scaleX:$imageStore.scaleX*0.95,scaleY:$imageStore.scaleY*0.95})
+      dispatch("view-action", {
+        ...$imageStore,
+        scaleX: $imageStore.scaleX * 0.95,
+        scaleY: $imageStore.scaleY * 0.95,
+      });
     }}
-    class="hover:bg-gray-300 rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
-      class="h-6 w-6"
+      class="h-5 w-5"
       viewBox="0 0 1024 1024"
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
@@ -128,21 +145,22 @@
   <!-- <button on:click={()=>{
     status={...status,rotating:!status.rotating}
 }} class="hover:bg-gray-300 hover:fill-white">
-  <svg class="h-4 w-4" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M853.333333 501.333333c-17.066667 0-32 14.933333-32 32v320c0 6.4-4.266667 10.666667-10.666666 10.666667H170.666667c-6.4 0-10.666667-4.266667-10.666667-10.666667V213.333333c0-6.4 4.266667-10.666667 10.666667-10.666666h320c17.066667 0 32-14.933333 32-32s-14.933333-32-32-32H170.666667c-40.533333 0-74.666667 34.133333-74.666667 74.666666v640c0 40.533333 34.133333 74.666667 74.666667 74.666667h640c40.533333 0 74.666667-34.133333 74.666666-74.666667V533.333333c0-17.066667-14.933333-32-32-32z" ></path><path d="M405.333333 484.266667l-32 125.866666c-2.133333 10.666667 0 23.466667 8.533334 29.866667 6.4 6.4 14.933333 8.533333 23.466666 8.533333h8.533334l125.866666-32c6.4-2.133333 10.666667-4.266667 14.933334-8.533333l300.8-300.8c38.4-38.4 38.4-102.4 0-140.8-38.4-38.4-102.4-38.4-140.8 0L413.866667 469.333333c-4.266667 4.266667-6.4 8.533333-8.533334 14.933334z m59.733334 23.466666L761.6 213.333333c12.8-12.8 36.266667-12.8 49.066667 0 12.8 12.8 12.8 36.266667 0 49.066667L516.266667 558.933333l-66.133334 17.066667 14.933334-68.266667z"></path></svg>
+  <svg class="h-5 w-5" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M853.333333 501.333333c-17.066667 0-32 14.933333-32 32v320c0 6.4-4.266667 10.666667-10.666666 10.666667H170.666667c-6.4 0-10.666667-4.266667-10.666667-10.666667V213.333333c0-6.4 4.266667-10.666667 10.666667-10.666666h320c17.066667 0 32-14.933333 32-32s-14.933333-32-32-32H170.666667c-40.533333 0-74.666667 34.133333-74.666667 74.666666v640c0 40.533333 34.133333 74.666667 74.666667 74.666667h640c40.533333 0 74.666667-34.133333 74.666666-74.666667V533.333333c0-17.066667-14.933333-32-32-32z" ></path><path d="M405.333333 484.266667l-32 125.866666c-2.133333 10.666667 0 23.466667 8.533334 29.866667 6.4 6.4 14.933333 8.533333 23.466666 8.533333h8.533334l125.866666-32c6.4-2.133333 10.666667-4.266667 14.933334-8.533333l300.8-300.8c38.4-38.4 38.4-102.4 0-140.8-38.4-38.4-102.4-38.4-140.8 0L413.866667 469.333333c-4.266667 4.266667-6.4 8.533333-8.533334 14.933334z m59.733334 23.466666L761.6 213.333333c12.8-12.8 36.266667-12.8 49.066667 0 12.8 12.8 12.8 36.266667 0 49.066667L516.266667 558.933333l-66.133334 17.066667 14.933334-68.266667z"></path></svg>
 </button> -->
-  <button data-tooltip="rotate anti-clockwise 90 degree"
+  <button
+    data-tooltip="rotate anti-clockwise 90 degree"
     on:click={() => {
       if ($imageStore.rotation === -270) {
         $imageStore.rotation = 0;
       } else {
         $imageStore.rotation -= 90;
       }
-      dispatch("view-action",{...$imageStore})
+      dispatch("view-action", { ...$imageStore });
     }}
-    class="hover:bg-gray-300 rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
-      class="h-6 w-6"
+      class="h-5 w-5"
       viewBox="0 0 1024 1024"
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
@@ -153,19 +171,20 @@
       /></svg
     >
   </button>
-  <button data-tooltip="rotate clockwise 90 degree"
+  <button
+    data-tooltip="rotate clockwise 90 degree"
     on:click={() => {
       if ($imageStore.rotation === 270) {
         $imageStore.rotation = 0;
       } else {
         $imageStore.rotation += 90;
       }
-      dispatch("view-action",{...$imageStore})
+      dispatch("view-action", { ...$imageStore });
     }}
-    class="hover:bg-gray-300 rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
-      class="h-6 w-6"
+      class="h-5 w-5"
       viewBox="0 0 1024 1024"
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
@@ -176,13 +195,23 @@
       /></svg
     >
   </button>
-  <button data-tooltip="fit image to window" on:click={()=>{
-const result = fitSize(img, containerW, containerH, 36);
- 
-    dispatch("view-action",{...$imageStore,scale:result.ratio,pointX:result.offsetX,pointY:result.offsetY})
-  }} class="hover:bg-gray-400 rounded-md p-1 hover:fill-white">
+  <button
+    data-tooltip="fit image to window"
+    on:click={() => {
+      const result = fitSize(img, containerW, containerH, 36);
+
+      dispatch("view-action", {
+        ...$imageStore,
+        scaleX: result.ratio,
+        scaleY:result.ratio,
+        pointX: result.offsetX,
+        pointY: result.offsetY,
+      });
+    }}
+    class="hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
+  >
     <svg
-      class="h-6 w-6"
+      class="h-5 w-5"
       viewBox="0 0 1024 1024"
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
@@ -194,18 +223,32 @@ const result = fitSize(img, containerW, containerH, 36);
       /></svg
     >
   </button>
-  <button data-tooltip="restore image to its original size" on:click={()=>{
-    if(img.naturalWidth<=containerW&&img.naturalHeight<=containerH){
-      const result=fitSize(img,containerW,containerH,36);
-      console.log('ddd')
-      dispatch("view-action",{...$imageStore,scaleX:result.ratio,scaleY:result.ratio,pointX:result.offsetX,pointY:result.offsetY})
-    }else{
-
-      dispatch("view-action",{...$imageStore,scaleX:1.0,scaleY:1.0,pointX:0,pointY:0})
-    }
-  }} class="hover:bg-gray-400 rounded-md p-1 hover:fill-white">
+  <button
+    data-tooltip="restore image to its original size"
+    on:click={() => {
+      if (img.naturalWidth <= containerW && img.naturalHeight <= containerH) {
+        const result = fitSize(img, containerW, containerH, 36);
+        dispatch("view-action", {
+          ...$imageStore,
+          scaleX: result.ratio,
+          scaleY: result.ratio,
+          pointX: result.offsetX,
+          pointY: result.offsetY,
+        });
+      } else {
+        dispatch("view-action", {
+          ...$imageStore,
+          scaleX: 1.0,
+          scaleY: 1.0,
+          pointX: 0,
+          pointY: 0,
+        });
+      }
+    }}
+    class="hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
+  >
     <svg
-      class="h-6 w-6"
+      class="h-5 w-5"
       viewBox="0 0 1024 1024"
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
@@ -220,25 +263,125 @@ const result = fitSize(img, containerW, containerH, 36);
       /></svg
     >
   </button>
-  <button on:click={()=>{
-    dispatch("view-action",{...$imageStore,scaleX:$imageStore.scaleX*(-1),scaleY:$imageStore.scaleY})
-  }} data-tooltip="flip horizontal" class="hover:bg-gray-400 rounded-md p-1 hover:fill-white">
-    <svg class="h-6 w-6" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M483.03214242 164.38571167h57.93571516v695.22857666h-57.93571516zM627.87142966 512l231.74285867 231.74285867V280.25714133z m202.77500109 161.93032287L668.71610854 512 830.64643075 350.06967713zM164.38571167 743.74285867l231.74285867-231.74285867-231.74285867-231.74285867zM193.35356925 350.06967713L355.28389146 512 193.35356925 673.93032287z"></path></svg>
+  <button
+    on:click={() => {
+      dispatch("view-action", {
+        ...$imageStore,
+        scaleX: $imageStore.scaleX * -1,
+        scaleY: $imageStore.scaleY,
+      });
+    }}
+    data-tooltip="flip horizontal"
+    class="hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
+  >
+    <svg
+      class="h-5 w-5"
+      viewBox="0 0 1024 1024"
+      version="1.1"
+      xmlns="http://www.w3.org/2000/svg"
+      width="200"
+      height="200"
+      ><path
+        d="M483.03214242 164.38571167h57.93571516v695.22857666h-57.93571516zM627.87142966 512l231.74285867 231.74285867V280.25714133z m202.77500109 161.93032287L668.71610854 512 830.64643075 350.06967713zM164.38571167 743.74285867l231.74285867-231.74285867-231.74285867-231.74285867zM193.35356925 350.06967713L355.28389146 512 193.35356925 673.93032287z"
+      /></svg
+    >
   </button>
-  <button on:click={()=>{
-    dispatch("view-action",{...$imageStore,scaleX:$imageStore.scaleX,scaleY:$imageStore.scaleY*(-1)})
-  }}
-   data-tooltip="flip vertical" class="hover:bg-gray-400 rounded-md p-1 hover:fill-white">
-    <svg class="h-6 w-6" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M164.38571167 483.03214242h695.22857666v57.93571516H164.38571167zM512 396.12857034l231.74285867-231.74285867H280.25714133z m161.93032287-202.77500109L512 355.28389146 350.06967713 193.35356925zM743.74285867 859.61428833l-231.74285867-231.74285867-231.74285867 231.74285867zM350.06967713 830.64643075L512 668.71610854 673.93032287 830.64643075z"></path></svg>
+  <button
+    on:click={() => {
+      dispatch("view-action", {
+        ...$imageStore,
+        scaleX: $imageStore.scaleX,
+        scaleY: $imageStore.scaleY * -1,
+      });
+    }}
+    data-tooltip="flip vertical"
+    class="hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
+  >
+    <svg
+      class="h-5 w-5"
+      viewBox="0 0 1024 1024"
+      version="1.1"
+      xmlns="http://www.w3.org/2000/svg"
+      width="200"
+      height="200"
+      ><path
+        d="M164.38571167 483.03214242h695.22857666v57.93571516H164.38571167zM512 396.12857034l231.74285867-231.74285867H280.25714133z m161.93032287-202.77500109L512 355.28389146 350.06967713 193.35356925zM743.74285867 859.61428833l-231.74285867-231.74285867-231.74285867 231.74285867zM350.06967713 830.64643075L512 668.71610854 673.93032287 830.64643075z"
+      /></svg
+    >
   </button>
-  <button on:click={()=>{
-    EXIF.getData(img, function() {
-        const allMetaData = EXIF.getAllTags(this);
-        console.log(allMetaData)
-    });
-  }} data-tooltip="information" class="hover:bg-gray-400 rounded-md p-1 hover:fill-white">
-    <svg class="h-6 w-6" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M544.316006 271.650957l0 53.611012c0 4.41045-2.957355 7.357572-7.357572 7.357572l-49.957809 0c-4.420683 0-7.316639-2.947122-7.316639-7.357572l0-53.611012c0-4.41045 2.895957-7.357572 7.316639-7.357572l49.957809 0C541.358651 264.293385 544.316006 267.240507 544.316006 271.650957z"></path><path d="M542.842445 419.273109l0 337.148693c0 4.400217-2.947122 7.347339-7.357572 7.347339l-47.000454 0c-4.400217 0-7.347339-2.947122-7.347339-7.347339l0-337.148693c0-4.400217 2.947122-7.347339 7.347339-7.347339l47.000454 0C539.895323 411.92577 542.842445 414.872892 542.842445 419.273109z"></path><path d="M1023.990786 511.994883c0 91.258447-24.313755 180.859138-70.311369 259.101129-5.730515 9.752108-18.266016 13.006222-28.007891 7.275707-9.752108-5.730515-13.006222-18.266016-7.275707-28.018124 42.303478-71.958892 64.662719-154.386206 64.662719-238.358713 0-63.59848-12.453636-125.293611-37.012985-183.356005-23.720238-56.087413-57.68377-106.464777-100.949156-149.730163-43.265386-43.265386-93.64275-77.239152-149.740396-100.95939-58.062394-24.559349-119.747291-37.002752-183.356005-37.002752s-125.293611 12.443403-183.356005 37.002752c-56.097646 23.720238-106.47501 57.694003-149.740396 100.95939s-77.228919 93.64275-100.949156 149.730163c-24.559349 58.062394-37.012985 119.757524-37.012985 183.356005 0 63.608713 12.453636 125.293611 37.012985 183.356005 23.720238 56.087413 57.68377 106.464777 100.949156 149.740396 43.265386 43.265386 93.64275 77.228919 149.740396 100.949156 58.062394 24.559349 119.747291 37.012985 183.356005 37.012985 117.946272 0 230.79648-43.797505 317.767274-123.308397 8.339946-7.623631 21.284769-7.040347 28.9084 1.299599s7.05058 21.284769-1.289366 28.9084c-94.533027 86.428442-217.196741 134.032646-345.386308 134.032646-69.114101 0-136.171356-13.538341-199.299115-40.246633-60.978816-25.787316-115.725698-62.697971-162.736385-109.708658s-83.921341-101.767801-109.708658-162.736385c-26.708292-63.127759-40.246633-130.185015-40.246633-199.299115s13.538341-136.161123 40.246633-199.299115c25.787316-60.968583 62.697971-115.715465 109.708658-162.736385 47.010687-47.010687 101.757568-83.921341 162.736385-109.708658 63.127759-26.698059 130.185015-40.2364 199.299115-40.2364s136.171356 13.538341 199.299115 40.2364c60.978816 25.787316 115.725698 62.697971 162.736385 109.708658 47.010687 47.02092 83.921341 101.767801 109.708658 162.736385C1010.442212 375.833761 1023.990786 442.880783 1023.990786 511.994883z"></path></svg>
-  </button>
+  
+  <div class="relative">
+    <button
+      on:click={() => (isMenuShow = !isMenuShow)}
+      data-tooltip="more"
+      class="hover:bg-gray-400 rounded-md p-1 hover:fill-white"
+    >
+      <svg
+        class="h-5 w-5"
+        viewBox="0 0 1024 1024"
+        version="1.1"
+        xmlns="http://www.w3.org/2000/svg"
+        width="200"
+        height="200"
+        ><path
+          d="M576 192a64 64 0 1 0-128 0 64 64 0 0 0 128 0z m0 320a64 64 0 1 0-128 0 64 64 0 0 0 128 0z m-64 384a64 64 0 1 1 0-128 64 64 0 0 1 0 128z"
+        /></svg
+      >
+    </button>
+    <!-- dropdown menu -->
+
+    <div
+      id="dropdownDivider"
+      class={`z-10 ${
+        isMenuShow ? "" : "hidden"
+      } absolute bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600`}
+    >
+      <ul
+        class="py-2 text-sm text-gray-700 dark:text-gray-200"
+        aria-labelledby="dropdownDividerButton"
+      >
+        <li>
+          <a
+            on:click={() => {
+              EXIF.getData(img, function () {
+                const allMetaData = EXIF.getAllTags(this);
+                $imageStore.exif=allMetaData;
+                console.log(allMetaData);
+              });
+              isMenuShow=false;
+            }}
+            href="#"
+            class="block px-4 py-1 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+            >Show EXIF infos</a
+          >
+        </li>
+        <li>
+          <a
+            href="#"
+            class="block px-4 py-1 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+            >change to en</a
+          >
+        </li>
+        <li>
+          <a
+            href="#"
+            class="block px-4 py-1 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+            >About</a
+          >
+        </li>
+      </ul>
+      <div class="py-1">
+        <a on:click={()=>{
+          clearImage();
+          isMenuShow=false;
+        }}
+          href="#"
+          class="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+          >Close current image</a
+        >
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>
@@ -246,8 +389,8 @@ const result = fitSize(img, containerW, containerH, 36);
     position: relative;
   }
 
-  button::before,
-  button::after {
+  .tooltip::before,
+  .tooltip::after {
     --scale: 0;
     --arrow-size: 10px;
     --tooltip-color: rgb(156 163 175 / var(--tw-bg-opacity));
@@ -260,7 +403,7 @@ const result = fitSize(img, containerW, containerH, 36);
     transform-origin: top center;
   }
 
-  button::before {
+  .tooltip::before {
     --translate-y: calc(100% + var(--arrow-size));
 
     content: attr(data-tooltip);
@@ -276,12 +419,12 @@ const result = fitSize(img, containerW, containerH, 36);
     background: var(--tooltip-color);
   }
 
-  button:hover::before,
-  button:hover::after {
+  .tooltip:hover::before,
+  .tooltip:hover::after {
     --scale: 1;
   }
 
-  button::after {
+  .tooltip::after {
     --translate-y: calc(1 * var(--arrow-size));
     content: "";
     border: var(--arrow-size) solid transparent;

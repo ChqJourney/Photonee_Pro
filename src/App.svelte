@@ -11,6 +11,7 @@
   import { dragHandling, fileName } from "./funcs/file";
   import Thumbs from "./lib/Thumbs.svelte";
   import { _ } from "svelte-i18n";
+    import Infos from "./lib/Infos.Svelte";
   onMount(async () => {
     const file = await invoke("init_file");
     if (file) {
@@ -124,9 +125,10 @@
         : "border-t"
     } overflow-hidden h-full relative`}
   >
-  {#if $dataStore.source.length !== 0 && isShowExif}
-  <div class="absolute w-full z-50 h-36 top-0 bg-slate-400">
-    <div>adfafadf</div>
+  {#if $dataStore.source.length !== 0 && $imageStore.exif}
+  <div class="absolute w-2/5 z-40 h-full top-0 right-0 bg-gray-50 pl-4 py-4 overflow-auto">
+    <button class="absolute right-0 top-0" on:click={()=>$imageStore.exif=undefined}>x</button>
+    <Infos info={$imageStore.exif}/>
   </div>
 {/if}
     <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
@@ -147,18 +149,26 @@
         var xs = (e.clientX - $imageStore.pointX) / $imageStore.scaleX,
           ys = (e.clientY - $imageStore.pointY) / $imageStore.scaleY,
           delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
-        if (delta > 0) {
-          $imageStore.scaleX *= 1.1;
-          $imageStore.scaleY *= 1.1;
-        } else {
-          $imageStore.scaleX /= 1.1;
-          $imageStore.scaleY /= 1.1;
-        }
-        $imageStore = {
+        
+          if (delta > 0) {
+            $imageStore = {
           ...$imageStore,
           pointX: e.clientX - xs * $imageStore.scaleX,
           pointY: e.clientY - ys * $imageStore.scaleY,
+          scaleX:$imageStore.scaleX *1.1,
+          scaleY:$imageStore.scaleY *1.1
         };
+         
+        } else {
+          $imageStore = {
+          ...$imageStore,
+          pointX: e.clientX - xs * $imageStore.scaleX,
+          pointY: e.clientY - ys * $imageStore.scaleY,
+          scaleX:$imageStore.scaleX /1.1,
+          scaleY:$imageStore.scaleY /1.1
+        };
+        }
+       
       }}
       on:mousedown={(e) => {
         e.preventDefault();
