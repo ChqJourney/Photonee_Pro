@@ -1,13 +1,10 @@
 <script>
   import { open } from "@tauri-apps/api/dialog";
-  import { createEventDispatcher } from "svelte";
   import { fitSize } from "../funcs/image";
-  import { clearImage, dataStore, imageStore } from "../store";
+  import { clearImage,imageStore, updateData, updateImage } from "../store";
   import { dragHandling } from "../funcs/file";
   import { _ } from "svelte-i18n";
   import * as EXIF from "exif-js";
-    import { scale } from "svelte/transition";
-  const dispatch = createEventDispatcher();
   export let img;
   export let containerW, containerH;
   let isMenuShow = false;
@@ -30,12 +27,11 @@
 
       if (imgSrc) {
         const result = await dragHandling(imgSrc.toString());
-        dispatch("source-action", {
-          ...$dataStore,
+        updateData({
           mode: "file",
           currentIdx: 0,
-          source: [...result.source],
-        });
+          source: [...result.source]
+        })
       }
     }}
     class="hover:bg-gray-500 tooltip rounded-md p-1 hover:fill-white"
@@ -64,18 +60,11 @@
 
       if (imgSrc) {
         const result = await dragHandling(imgSrc.toString());
-
-        $dataStore = {
-          ...$dataStore,
+        updateData({
           mode: result.mode,
           source: [...result.source],
-        };
-        dispatch("source-action", {
-          ...$dataStore,
-          mode: "folder",
           currentIdx: 0,
-          source: [...result.source],
-        });
+        })
       }
     }}
     class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
@@ -95,11 +84,15 @@
   <button
     data-tooltip="zoom in"
     on:click={() => {
-      dispatch("view-action", {
-        ...$imageStore,
+      updateImage({
         scaleX: $imageStore.scaleX * 1.05,
         scaleY: $imageStore.scaleY * 1.05,
-      });
+      })
+      // dispatch("view-action", {
+      //   ...$imageStore,
+      //   scaleX: $imageStore.scaleX * 1.05,
+      //   scaleY: $imageStore.scaleY * 1.05,
+      // });
     }}
     class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
   >
@@ -120,11 +113,15 @@
   <button
     data-tooltip="zoom out"
     on:click={() => {
-      dispatch("view-action", {
-        ...$imageStore,
+      updateImage({
         scaleX: $imageStore.scaleX * 0.95,
         scaleY: $imageStore.scaleY * 0.95,
-      });
+      })
+      // dispatch("view-action", {
+      //   ...$imageStore,
+      //   scaleX: $imageStore.scaleX * 0.95,
+      //   scaleY: $imageStore.scaleY * 0.95,
+      // });
     }}
     class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
   >
@@ -151,11 +148,17 @@
     data-tooltip="rotate anti-clockwise 90 degree"
     on:click={() => {
       if ($imageStore.rotation === -270) {
-        $imageStore.rotation = 0;
+        updateImage({
+          rotation:0
+        })
+        // $imageStore.rotation = 0;
       } else {
-        $imageStore.rotation -= 90;
+        updateImage({
+          rotation:$imageStore.rotation-90
+        })
+        // $imageStore.rotation -= 90;
       }
-      dispatch("view-action", { ...$imageStore });
+      // dispatch("view-action", { ...$imageStore });
     }}
     class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
   >
@@ -175,11 +178,15 @@
     data-tooltip="rotate clockwise 90 degree"
     on:click={() => {
       if ($imageStore.rotation === 270) {
-        $imageStore.rotation = 0;
+        updateImage({
+          rotation:0
+        })
       } else {
-        $imageStore.rotation += 90;
+        updateImage({
+          rotation:$imageStore.rotation-90
+        })
       }
-      dispatch("view-action", { ...$imageStore });
+      // dispatch("view-action", { ...$imageStore });
     }}
     class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
   >
@@ -199,14 +206,19 @@
     data-tooltip="fit image to window"
     on:click={() => {
       const result = fitSize(img, containerW, containerH, 36);
-
-      dispatch("view-action", {
-        ...$imageStore,
+      updateImage({
         scaleX: result.ratio,
         scaleY:result.ratio,
         pointX: result.offsetX,
-        pointY: result.offsetY,
-      });
+        pointY: result.offsetY
+      })
+      // dispatch("view-action", {
+      //   ...$imageStore,
+      //   scaleX: result.ratio,
+      //   scaleY:result.ratio,
+      //   pointX: result.offsetX,
+      //   pointY: result.offsetY,
+      // });
     }}
     class="hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
@@ -228,21 +240,33 @@
     on:click={() => {
       if (img.naturalWidth <= containerW && img.naturalHeight <= containerH) {
         const result = fitSize(img, containerW, containerH, 36);
-        dispatch("view-action", {
-          ...$imageStore,
+        updateImage({
           scaleX: result.ratio,
           scaleY: result.ratio,
           pointX: result.offsetX,
           pointY: result.offsetY,
-        });
+        })
+        // dispatch("view-action", {
+        //   ...$imageStore,
+        //   scaleX: result.ratio,
+        //   scaleY: result.ratio,
+        //   pointX: result.offsetX,
+        //   pointY: result.offsetY,
+        // });
       } else {
-        dispatch("view-action", {
-          ...$imageStore,
+        updateImage({
           scaleX: 1.0,
           scaleY: 1.0,
           pointX: 0,
           pointY: 0,
-        });
+        })
+        // dispatch("view-action", {
+        //   ...$imageStore,
+        //   scaleX: 1.0,
+        //   scaleY: 1.0,
+        //   pointX: 0,
+        //   pointY: 0,
+        // });
       }
     }}
     class="hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
@@ -265,11 +289,15 @@
   </button>
   <button
     on:click={() => {
-      dispatch("view-action", {
-        ...$imageStore,
+      updateImage({
         scaleX: $imageStore.scaleX * -1,
         scaleY: $imageStore.scaleY,
-      });
+      })
+      // dispatch("view-action", {
+      //   ...$imageStore,
+      //   scaleX: $imageStore.scaleX * -1,
+      //   scaleY: $imageStore.scaleY,
+      // });
     }}
     data-tooltip="flip horizontal"
     class="hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
@@ -288,11 +316,15 @@
   </button>
   <button
     on:click={() => {
-      dispatch("view-action", {
-        ...$imageStore,
+      updateImage({
         scaleX: $imageStore.scaleX,
         scaleY: $imageStore.scaleY * -1,
-      });
+      })
+      // dispatch("view-action", {
+      //   ...$imageStore,
+      //   scaleX: $imageStore.scaleX,
+      //   scaleY: $imageStore.scaleY * -1,
+      // });
     }}
     data-tooltip="flip vertical"
     class="hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"

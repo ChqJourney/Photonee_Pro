@@ -3,9 +3,19 @@ import { writable } from "svelte/store";
 export const guiStore=writable({winWidth:800,winHeight:600,currentImgElement:undefined,underDrop:false})
 
 export const dataStore=writable({mode:"file",source:[],currentIdx:0});
-
+export const updateData=(obj)=>{
+    dataStore.update(val=>{
+        val={...val,...obj};
+        return val;
+    })
+}
 export const imageStore=writable({scaleX:1.0,scaleY:1.0,rotation:0,pointX:0,pointY:0,exif:undefined});
-
+export const updateImage=(obj)=>{
+    imageStore.update(val=>{
+        val={...val,...obj};
+        return val;
+    })
+}
 export const clearImage=()=>{
     imageStore.update(val=>{
     val.scaleX=1.0;

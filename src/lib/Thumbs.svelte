@@ -4,7 +4,7 @@
 </script>
 
 
-<div title="press shift key to scroll images with  your mouse wheel" on:scroll={e=>console.log(e)} class="h-24 overflow-x-auto rounded-lg w-full flex justify-between items-center gap-4 py-2 px-10 bg-slate-100">
+<div title="press shift key to scroll images with  your mouse wheel" on:scroll={e=>console.log(e)} class="h-24 overflow-x-auto rounded-lg w-full flex justify-start items-center gap-4 py-2 px-10 bg-slate-100">
     {#each $dataStore.source as th,idx}
         <img loading="lazy" on:keyup={()=>{}} on:keydown={()=>{}} 
         src={th.url} on:click={()=>$dataStore.currentIdx=idx} style="height: 100%;" 
