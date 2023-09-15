@@ -1,6 +1,5 @@
 <script>
 // @ts-nocheck
-
   import { convertFileSrc, invoke } from "@tauri-apps/api/tauri";
   import { onMount } from "svelte";
   import { fitSize } from "./funcs/image";
@@ -9,17 +8,19 @@
   import Brand from "./lib/svgs/Brand.svelte";
   import TopBar from "./lib/TopBar.svelte";
   import ToolBar from "./lib/ToolBar.svelte";
-  import { clearImage, dataStore, imageStore, resetRotation, updateData, updateImage } from "./store";
+  import { clearImage, dataStore, guiStore, imageStore, resetRotation, updateData, updateImage } from "./store";
   import { dragHandling, fileName } from "./funcs/file";
   import { register } from '@tauri-apps/api/globalShortcut';
   import Thumbs from "./lib/Thumbs.svelte";
   import { _ } from "svelte-i18n";
   import Infos from "./lib/Infos.svelte";
     import { openFile, openFolder } from "./funcs/biz";
+    import { type } from "@tauri-apps/api/os";
     listen("openFile-menu-clicked",async()=>await openFile());
     listen("openFolder-menu-clicked",async()=>await openFolder());
     listen("close-menu-clicked",()=>clearImage())
   onMount(async () => {
+    $guiStore.os=await type()
     await register("CommandOrControl+O",async()=>await openFile());
     await register("CommandOrControl+Shift+O",async()=>await openFolder());
     await register("CommandOrControl+Shift+C",()=>clearImage());
@@ -119,12 +120,12 @@
       items:[
         {
           label:"Open file",
-          shortcut:"Ctrl+O",
+          shortcut:`${$guiStore.os==="Darwin"?"":"Ctrl+O"}`,
           event:"openFile-menu-clicked"
         },
         {
           label:"Open folder",
-          shortcut:"Ctrl+Shift+O",
+          shortcut:`${$guiStore.os==="Darwin"?"":"Ctrl+Shift+O"}`,
           event:"openFolder-menu-clicked"
         },
         {
@@ -132,7 +133,7 @@
         },
         {
           label:"Close",
-          shortcut:"Ctrl+Shift+C",
+          shortcut:`${$guiStore.os==="Darwin"?"":"Ctrl+Shift+C"}`,
           event:"close-menu-clicked"
         },
       ]

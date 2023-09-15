@@ -4,19 +4,18 @@
       import { hide,show } from '@tauri-apps/api/app';
       import { type } from '@tauri-apps/api/os';
     import { onMount } from 'svelte';
+    import { guiStore } from '../store';
       let toMax,fromMax;
-      let osType;
       onMount(async()=>{
         fromMax.style.display="none";
         toMax.style.display="";
-        osType=await type()
+        
       })
 </script>
 <div class="flex gap-2">
   <div class="w-6"></div>
     <button on:click={async()=>{
-      console.log(osType)
-      if(osType==="Darwin"){
+      if($guiStore.os==="Darwin"){
         await hide();
       }else{
         await appWindow.minimize();
@@ -24,7 +23,7 @@
       }} class="w-6 h-6 rounded-md items-center flex hover:bg-slate-400 dark:fill-slate-200 hover:fill-white justify-center" id="titlebar-minimize">
       <svg class="h-3 w-3" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"  width="200" height="200"><path d="M960 544H64a32 32 0 1 1 0-64h896a32 32 0 1 1 0 64"></path></svg>
     </button>
-    {#if osType!=="Darwin"}
+    {#if $guiStore.os!=="Darwin"}
     <button on:click={async()=>{
       let state=await appWindow.isMaximized();
       if(state){
@@ -34,7 +33,7 @@
         fromMax.style.display="";
         toMax.style.display="none";
       }
-      if(osType==="Darwin"){
+      if($guiStore.os==="Darwin"){
         await show();
       }else{
         await appWindow.toggleMaximize();

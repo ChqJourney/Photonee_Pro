@@ -1,6 +1,6 @@
 import { writable } from "svelte/store";
 
-export const guiStore=writable({locale:"en-US"})
+export const guiStore=writable({locale:"en-US",os:"Windows_NT"})
 
 export const dataStore=writable({mode:"file",source:[],currentIdx:0});
 export const updateData=(obj)=>{

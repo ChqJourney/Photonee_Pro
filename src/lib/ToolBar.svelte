@@ -1,5 +1,5 @@
 <script>
-  import { open } from "@tauri-apps/api/dialog";
+  import { message, open } from "@tauri-apps/api/dialog";
   import { fitSize } from "../funcs/image";
   import { clearImage,imageStore, guiStore, updateData, updateImage } from "../store";
   import { dragHandling } from "../funcs/file";
@@ -322,8 +322,8 @@
           >
         </li>
         <li>
-          <a
-            href="#"
+          <a target="_blank"
+            href="https://github.com/ChqJourney/ImageProc"
             class="block px-4 py-1 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
             >{$_("about")}</a
           >
