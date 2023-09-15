@@ -14,7 +14,6 @@ invoke("fetch_locale").then(locale=>{
     fallbackLocale:"en-US",
     initialLocale:locale
   })
-  
   app = new App({
     target: document.getElementById("app"),
   });

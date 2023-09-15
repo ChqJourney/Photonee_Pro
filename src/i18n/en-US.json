@@ -1,4 +1,18 @@
 {
     "drag_notice":"please drag image or folder to this window and drop",
-    "open_image_file":"Open image file"
+    "open_image_file":"Open image file",
+    "open_folder":"Open folder",
+    "zoom_in":"Zoom in",
+    "zoom_out":"Zoom out",
+    "rotate_clockwise":"Rotate clockwise",
+    "rotate_anti-clockwise":"Rotate anti-clockwise",
+    "fit_to":"fit to window",
+    "restore_to_origin":"Restore to its original size",
+    "flip_h":"Flip honrizontally",
+    "flip_v":"Flip vertically",
+    "show_exif":"Show EXIF infos",
+    "change_locale":"Switch to",
+    "about":"About",
+    "close_img":"Close current image"
+    
 }

@@ -7,31 +7,32 @@
   import Brand from "./lib/svgs/Brand.svelte";
   import TopBar from "./lib/TopBar.svelte";
   import ToolBar from "./lib/ToolBar.svelte";
-  import { dataStore, imageStore, resetRotation, updateImage } from "./store";
+  import { dataStore, imageStore, resetRotation, updateData, updateImage } from "./store";
   import { dragHandling, fileName } from "./funcs/file";
   import Thumbs from "./lib/Thumbs.svelte";
   import { _ } from "svelte-i18n";
-    import Infos from "./lib/Infos.svelte";
+  import Infos from "./lib/Infos.svelte";
 
   onMount(async () => {
+    
     const file = await invoke("init_file");
     if (file) {
-      $dataStore = {
-        ...$dataStore,
+      updateData({
         mode: "file",
         source: [
           { path: file, name: fileName(file), url: convertFileSrc(file) },
-        ],
-      };
+        ]
+      });
+      
     }
     const unlisten = await listen("tauri://file-drop", async (event) => {
       const result = await dragHandling(event.payload[0]);
       resetRotation();
-      $dataStore = {
-        ...$dataStore,
+      updateData({
         mode: result.mode,
-        source: [...result.source],
-      };
+        source: [...result.source]
+      })
+     
       isDragHover = false;
     });
     await listen("tauri://file-drop-hover", async (event) => {
@@ -41,7 +42,7 @@
       isDragHover = false;
     });
   });
-  let status = { inEdit: false, panning: false, rotating: false };
+  let panning
   let isDragHover = false;
   let w, h;
   let img;
@@ -72,10 +73,10 @@
 <svelte:window class="" bind:innerHeight={osh} bind:innerWidth={osw} />
 <div
   style="border-radius: 10px;"
-  class={`relative flex flex-col items-center justify-center h-screen py-10 px-8 bg-gray-50 `}
+  class={`relative flex flex-col items-center justify-center h-screen py-10 px-8 bg-gray-50 dark:bg-gray-600 `}
 >
   <TopBar>
-    <Brand color="fill-slate-600" width="w-20" height="h-10" />
+    <Brand color="fill-[#0EA5E9]" width="w-20" height="h-10" />
 
     <div class="flex items-center justify-center gap-4">
       <ToolBar
@@ -91,7 +92,7 @@
   {#if $dataStore.source.length === 0}
   <div>
     <div class="font-sans text-gray-400 -translate-x-1/2 -translate-y-1/2 items-center absolute top-[50%] flex flex-col justify-center">
-      <svg class="h-24 w-24 fill-violet-500" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M928 128H96C42.98 128 0 170.98 0 224v576c0 53.02 42.98 96 96 96h832c53.02 0 96-42.98 96-96V224c0-53.02-42.98-96-96-96z m-12 672H108a12 12 0 0 1-12-12V236a12 12 0 0 1 12-12h808a12 12 0 0 1 12 12v552a12 12 0 0 1-12 12zM256 304c-44.182 0-80 35.818-80 80s35.818 80 80 80 80-35.818 80-80-35.818-80-80-80zM192 704h640v-160l-175.03-175.03c-9.372-9.372-24.568-9.372-33.942 0L384 608l-79.03-79.03c-9.372-9.372-24.568-9.372-33.942 0L192 608v96z"></path></svg>
+      <svg class="h-24 w-24 fill-violet-500 dark:fill-slate-400" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M928 128H96C42.98 128 0 170.98 0 224v576c0 53.02 42.98 96 96 96h832c53.02 0 96-42.98 96-96V224c0-53.02-42.98-96-96-96z m-12 672H108a12 12 0 0 1-12-12V236a12 12 0 0 1 12-12h808a12 12 0 0 1 12 12v552a12 12 0 0 1-12 12zM256 304c-44.182 0-80 35.818-80 80s35.818 80 80 80 80-35.818 80-80-35.818-80-80-80zM192 704h640v-160l-175.03-175.03c-9.372-9.372-24.568-9.372-33.942 0L384 608l-79.03-79.03c-9.372-9.372-24.568-9.372-33.942 0L192 608v96z"></path></svg>
       {$_('drag_notice')}
     </div>
   </div>
@@ -103,12 +104,16 @@
     class={`w-full ${
       isDragHover
         ? "border border-dashed border-pink-500 rounded-md"
-        : "border-t"
+        : "border-t dark:border-sky-600"
     } overflow-hidden h-full relative`}
   >
   {#if $dataStore.source.length !== 0 && $imageStore.exif}
   <div class="absolute w-2/5 z-40 h-full top-0 right-0 bg-gray-50 pl-4 py-4 overflow-auto">
-    <button class="absolute right-0 top-0" on:click={()=>$imageStore.exif=undefined}>x</button>
+    <button on:click={()=>{
+      $imageStore.exif=undefined;
+    }} class="absolute right-1 top-1 w-6 h-6 rounded-md items-center hover:bg-slate-400 hover:fill-white flex justify-center" >
+      <svg class="h-4 w-4" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M563.8 512l262.5-312.9c4.4-5.2 0.7-13.1-6.1-13.1h-79.8c-4.7 0-9.2 2.1-12.3 5.7L511.6 449.8 295.1 191.7c-3-3.6-7.5-5.7-12.3-5.7H203c-6.8 0-10.5 7.9-6.1 13.1L459.4 512 196.9 824.9c-4.4 5.2-0.7 13.1 6.1 13.1h79.8c4.7 0 9.2-2.1 12.3-5.7l216.5-258.1 216.5 258.1c3 3.6 7.5 5.7 12.3 5.7h79.8c6.8 0 10.5-7.9 6.1-13.1L563.8 512z"></path></svg>
+    </button>
     <Infos info={$imageStore.exif}/>
   </div>
 {/if}
@@ -117,13 +122,13 @@
       on:load={() => {
         console.log(w, h);
         const result = fitSize(img, w, h, 36);
-        $imageStore = {
-          ...$imageStore,
+        updateImage({
           scaleX: result.ratio,
           scaleY: result.ratio,
           pointX: result.offsetX,
           pointY: result.offsetY,
-        };
+        })
+        
       }}
       on:wheel={(e) => {
         e.preventDefault();
@@ -132,22 +137,21 @@
           delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
         
           if (delta > 0) {
-            $imageStore = {
-          ...$imageStore,
-          pointX: e.clientX - xs * $imageStore.scaleX,
+            updateImage({
+              pointX: e.clientX - xs * $imageStore.scaleX,
           pointY: e.clientY - ys * $imageStore.scaleY,
           scaleX:$imageStore.scaleX *1.1,
           scaleY:$imageStore.scaleY *1.1
-        };
+            })
+            
          
         } else {
-          $imageStore = {
-          ...$imageStore,
-          pointX: e.clientX - xs * $imageStore.scaleX,
+          updateImage({
+            pointX: e.clientX - xs * $imageStore.scaleX,
           pointY: e.clientY - ys * $imageStore.scaleY,
           scaleX:$imageStore.scaleX /1.1,
           scaleY:$imageStore.scaleY /1.1
-        };
+          })
         }
        
       }}
@@ -158,21 +162,21 @@
           y: e.clientY - $imageStore.pointY,
         };
         console.log(start);
-        status = { ...status, panning: true };
+        panning=true;
       }}
       on:mouseup={(e) => {
-        status = { ...status, panning: false };
+        panning=false;
       }}
       on:mousemove={(e) => {
         e.preventDefault();
-        if (!status.panning) {
+        if (!panning) {
           return;
         }
-        $imageStore = {
-          ...$imageStore,
+        updateImage({
           pointX: e.clientX - start.x,
           pointY: e.clientY - start.y,
-        };
+        })
+        
       }}
       style="max-width:1000%;transform: {transform};"
       class={`z-10 cursor-grab absolute object-cover ${
@@ -185,7 +189,7 @@
     />
   </div>
 
-  <div class={`w-full px-4 ${$dataStore.mode === "file" ? "hidden" : ""}`}>
+  <div class={`w-full px-4 ${($dataStore.mode === "folder"&&$dataStore.source.length>0)? "" : "hidden"}`}>
     <Thumbs />
   </div>
   {#if $dataStore.source.length > 1}

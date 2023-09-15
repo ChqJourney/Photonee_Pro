@@ -1,7 +1,7 @@
 <script>
   import { open } from "@tauri-apps/api/dialog";
   import { fitSize } from "../funcs/image";
-  import { clearImage,imageStore, updateData, updateImage } from "../store";
+  import { clearImage,imageStore, guiStore, updateData, updateImage } from "../store";
   import { dragHandling } from "../funcs/file";
   import { _ } from "svelte-i18n";
   import * as EXIF from "exif-js";
@@ -34,7 +34,7 @@
         })
       }
     }}
-    class="hover:bg-gray-500 tooltip rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-500 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
       class="h-5 w-5"
@@ -51,7 +51,7 @@
     >
   </button>
   <button
-    data-tooltip="Open folder"
+    data-tooltip={$_("open_folder")}
     on:click={async () => {
       let imgSrc = await open({
         directory: true,
@@ -67,7 +67,7 @@
         })
       }
     }}
-    class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-300 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
       class="h-5 w-5"
@@ -82,19 +82,14 @@
     >
   </button>
   <button
-    data-tooltip="zoom in"
+    data-tooltip={$_("zoom_in")}
     on:click={() => {
       updateImage({
         scaleX: $imageStore.scaleX * 1.05,
         scaleY: $imageStore.scaleY * 1.05,
       })
-      // dispatch("view-action", {
-      //   ...$imageStore,
-      //   scaleX: $imageStore.scaleX * 1.05,
-      //   scaleY: $imageStore.scaleY * 1.05,
-      // });
     }}
-    class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-300 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
       class="h-5 w-5"
@@ -111,19 +106,14 @@
     >
   </button>
   <button
-    data-tooltip="zoom out"
+    data-tooltip={$_("zoom_out")}
     on:click={() => {
       updateImage({
         scaleX: $imageStore.scaleX * 0.95,
         scaleY: $imageStore.scaleY * 0.95,
       })
-      // dispatch("view-action", {
-      //   ...$imageStore,
-      //   scaleX: $imageStore.scaleX * 0.95,
-      //   scaleY: $imageStore.scaleY * 0.95,
-      // });
     }}
-    class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-300 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
       class="h-5 w-5"
@@ -139,28 +129,21 @@
       /></svg
     >
   </button>
-  <!-- <button on:click={()=>{
-    status={...status,rotating:!status.rotating}
-}} class="hover:bg-gray-300 hover:fill-white">
-  <svg class="h-5 w-5" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M853.333333 501.333333c-17.066667 0-32 14.933333-32 32v320c0 6.4-4.266667 10.666667-10.666666 10.666667H170.666667c-6.4 0-10.666667-4.266667-10.666667-10.666667V213.333333c0-6.4 4.266667-10.666667 10.666667-10.666666h320c17.066667 0 32-14.933333 32-32s-14.933333-32-32-32H170.666667c-40.533333 0-74.666667 34.133333-74.666667 74.666666v640c0 40.533333 34.133333 74.666667 74.666667 74.666667h640c40.533333 0 74.666667-34.133333 74.666666-74.666667V533.333333c0-17.066667-14.933333-32-32-32z" ></path><path d="M405.333333 484.266667l-32 125.866666c-2.133333 10.666667 0 23.466667 8.533334 29.866667 6.4 6.4 14.933333 8.533333 23.466666 8.533333h8.533334l125.866666-32c6.4-2.133333 10.666667-4.266667 14.933334-8.533333l300.8-300.8c38.4-38.4 38.4-102.4 0-140.8-38.4-38.4-102.4-38.4-140.8 0L413.866667 469.333333c-4.266667 4.266667-6.4 8.533333-8.533334 14.933334z m59.733334 23.466666L761.6 213.333333c12.8-12.8 36.266667-12.8 49.066667 0 12.8 12.8 12.8 36.266667 0 49.066667L516.266667 558.933333l-66.133334 17.066667 14.933334-68.266667z"></path></svg>
-</button> -->
+  
   <button
-    data-tooltip="rotate anti-clockwise 90 degree"
+    data-tooltip={$_("rotate_anti-clockwise")}
     on:click={() => {
       if ($imageStore.rotation === -270) {
         updateImage({
           rotation:0
         })
-        // $imageStore.rotation = 0;
       } else {
         updateImage({
           rotation:$imageStore.rotation-90
         })
-        // $imageStore.rotation -= 90;
       }
-      // dispatch("view-action", { ...$imageStore });
     }}
-    class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-300 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
       class="h-5 w-5"
@@ -175,7 +158,7 @@
     >
   </button>
   <button
-    data-tooltip="rotate clockwise 90 degree"
+    data-tooltip={$_("rotate_clockwise")}
     on:click={() => {
       if ($imageStore.rotation === 270) {
         updateImage({
@@ -186,9 +169,8 @@
           rotation:$imageStore.rotation-90
         })
       }
-      // dispatch("view-action", { ...$imageStore });
     }}
-    class="hover:bg-gray-300 tooltip rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-300 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
       class="h-5 w-5"
@@ -203,7 +185,7 @@
     >
   </button>
   <button
-    data-tooltip="fit image to window"
+    data-tooltip={$_("fit_to")}
     on:click={() => {
       const result = fitSize(img, containerW, containerH, 36);
       updateImage({
@@ -220,7 +202,7 @@
       //   pointY: result.offsetY,
       // });
     }}
-    class="hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-400 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
       class="h-5 w-5"
@@ -236,7 +218,7 @@
     >
   </button>
   <button
-    data-tooltip="restore image to its original size"
+    data-tooltip={$_("restore_to_origin")}
     on:click={() => {
       if (img.naturalWidth <= containerW && img.naturalHeight <= containerH) {
         const result = fitSize(img, containerW, containerH, 36);
@@ -269,7 +251,7 @@
         // });
       }
     }}
-    class="hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
+    class="hover:bg-gray-400 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
       class="h-5 w-5"
@@ -299,8 +281,8 @@
       //   scaleY: $imageStore.scaleY,
       // });
     }}
-    data-tooltip="flip horizontal"
-    class="hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
+    data-tooltip={$_("flip_h")}
+    class="hover:bg-gray-400 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
       class="h-5 w-5"
@@ -326,8 +308,8 @@
       //   scaleY: $imageStore.scaleY * -1,
       // });
     }}
-    data-tooltip="flip vertical"
-    class="hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
+    data-tooltip={$_("flip_v")}
+    class="hover:bg-gray-400 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
       class="h-5 w-5"
@@ -345,8 +327,7 @@
   <div class="relative">
     <button
       on:click={() => (isMenuShow = !isMenuShow)}
-      data-tooltip="more"
-      class="hover:bg-gray-400 rounded-md p-1 hover:fill-white"
+      class="hover:bg-gray-400 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 rounded-md p-1 hover:fill-white"
     >
       <svg
         class="h-5 w-5"
@@ -384,21 +365,21 @@
             }}
             href="#"
             class="block px-4 py-1 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-            >Show EXIF infos</a
+            >{$_("show_exif")}</a
           >
         </li>
         <li>
           <a
             href="#"
             class="block px-4 py-1 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-            >change to en</a
+            >{$_("change_locale")} {$guiStore.locale==="en-US"?"英文":"Chinese"}界面</a
           >
         </li>
         <li>
           <a
             href="#"
             class="block px-4 py-1 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-            >About</a
+            >{$_("about")}</a
           >
         </li>
       </ul>
@@ -409,7 +390,7 @@
         }}
           href="#"
           class="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-          >Close current image</a
+          >{$_("close_img")}</a
         >
       </div>
     </div>

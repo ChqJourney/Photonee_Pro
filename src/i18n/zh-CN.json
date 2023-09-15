@@ -1,4 +1,18 @@
 {
     "drag_notice":"拖拽图片或文件夹到此处！",
-    "open_image_file":"打开图片文件"
+    "open_image_file":"打开图片文件",
+    "open_folder":"打开文件夹",
+    "zoom_in":"放大",
+    "zoom_out":"缩小",
+    "rotate_clockwise":"顺时针旋转",
+    "rotate_anti-clockwise":"逆时针旋转",
+    "fit_to":"与窗口适配",
+    "restore_to_origin":"恢复原始尺寸",
+    "flip_h":"水平镜像",
+    "flip_v":"垂直镜像",
+    
+    "show_exif":"显示 EXIF 信息",
+    "change_locale":"变换到",
+    "about":"关于",
+    "close_img":"关闭当前图片"
 }
