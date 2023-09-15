@@ -19,6 +19,9 @@ export const dragHandling=async(path)=>{
   try{
 
     const entries=await readDir(path);
+    if(entries.length===0){
+      return undefined;
+    }
     const files= entries.filter(f=>isImageFormat(f.path)).map(v=>{
       return {name:v.name,path:v.path,url:convertFileSrc(v.path)}
     })

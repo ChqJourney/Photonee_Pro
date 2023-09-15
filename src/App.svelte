@@ -1,20 +1,28 @@
 <script>
+// @ts-nocheck
+
   import { convertFileSrc, invoke } from "@tauri-apps/api/tauri";
-  import { onMount, tick } from "svelte";
-  import { fitSize, isImageFormat } from "./funcs/image";
+  import { onMount } from "svelte";
+  import { fitSize } from "./funcs/image";
   import { listen } from "@tauri-apps/api/event";
   import WinBtns from "./lib/winBtns.svelte";
   import Brand from "./lib/svgs/Brand.svelte";
   import TopBar from "./lib/TopBar.svelte";
   import ToolBar from "./lib/ToolBar.svelte";
-  import { dataStore, imageStore, resetRotation, updateData, updateImage } from "./store";
+  import { clearImage, dataStore, imageStore, resetRotation, updateData, updateImage } from "./store";
   import { dragHandling, fileName } from "./funcs/file";
+  import { register } from '@tauri-apps/api/globalShortcut';
   import Thumbs from "./lib/Thumbs.svelte";
   import { _ } from "svelte-i18n";
   import Infos from "./lib/Infos.svelte";
-
+    import { openFile, openFolder } from "./funcs/biz";
+    listen("openFile-menu-clicked",async()=>await openFile());
+    listen("openFolder-menu-clicked",async()=>await openFolder());
+    listen("close-menu-clicked",()=>clearImage())
   onMount(async () => {
-    
+    await register("CommandOrControl+O",async()=>await openFile());
+    await register("CommandOrControl+Shift+O",async()=>await openFolder());
+    await register("CommandOrControl+Shift+C",()=>clearImage());
     const file = await invoke("init_file");
     if (file) {
       updateData({
@@ -26,14 +34,19 @@
       
     }
     const unlisten = await listen("tauri://file-drop", async (event) => {
-      const result = await dragHandling(event.payload[0]);
-      resetRotation();
-      updateData({
-        mode: result.mode,
-        source: [...result.source]
-      })
-     
-      isDragHover = false;
+      
+        const result = await dragHandling(event.payload[0]);
+        if(!result){
+          isDragHover = false;
+          return;
+        }
+        resetRotation();
+        updateData({
+          mode: result.mode,
+          source: [...result.source]
+        });
+        isDragHover = false;
+      
     });
     await listen("tauri://file-drop-hover", async (event) => {
       isDragHover = true;
@@ -71,8 +84,9 @@
 </script>
 
 <svelte:window class="" bind:innerHeight={osh} bind:innerWidth={osw} />
-<div
-  style="border-radius: 10px;"
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div on:contextmenu={e=>e.preventDefault()}
+  style="border-radius: 8px;"
   class={`relative flex flex-col items-center justify-center h-screen py-10 px-8 bg-gray-50 dark:bg-gray-600 `}
 >
   <TopBar>
@@ -98,13 +112,38 @@
   </div>
   {/if}
  
-  <div
+  <div on:contextmenu={async(e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    await invoke("plugin:context_menu|show_context_menu",{
+      items:[
+        {
+          label:"Open file",
+          shortcut:"Ctrl+O",
+          event:"openFile-menu-clicked"
+        },
+        {
+          label:"Open folder",
+          shortcut:"Ctrl+Shift+O",
+          event:"openFolder-menu-clicked"
+        },
+        {
+          is_separator:true
+        },
+        {
+          label:"Close",
+          shortcut:"Ctrl+Shift+C",
+          event:"close-menu-clicked"
+        },
+      ]
+    })
+  }}
     bind:clientWidth={w}
     bind:clientHeight={h}
     class={`w-full ${
       isDragHover
-        ? "border border-dashed border-pink-500 rounded-md"
-        : "border-t dark:border-sky-600"
+        ? "border border-dashed dark:border-sky-400 border-orange-500 rounded-md"
+        : "border-t dark:border-0"
     } overflow-hidden h-full relative`}
   >
   {#if $dataStore.source.length !== 0 && $imageStore.exif}
@@ -118,7 +157,7 @@
   </div>
 {/if}
     <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-    <img
+    <img 
       on:load={() => {
         console.log(w, h);
         const result = fitSize(img, w, h, 36);
@@ -200,7 +239,7 @@
             $dataStore.currentIdx -= 1;
           }
         }}
-        class="h-10 rounded-full w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
+        class="h-10 rounded-full w-10 dark:bg-gray-400 dark:hover:bg-gray-300 hover:bg-gray-400 fill-gray-600 hover:fill-graty-400 bg-gray-100 flex justify-center items-center"
       >
         <svg
           class="h-8 w-8"
@@ -224,7 +263,7 @@
             $dataStore.currentIdx += 1;
           }
         }}
-        class="h-10 rounded-full w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
+        class="h-10 rounded-full dark:bg-gray-400 dark:hover:bg-gray-300 w-10 hover:bg-gray-400 fill-gray-600 hover:fill-white bg-gray-100 flex justify-center items-center"
       >
         <svg
           class="h-8 w-8"

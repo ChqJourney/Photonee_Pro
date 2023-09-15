@@ -3,8 +3,9 @@
   import { fitSize } from "../funcs/image";
   import { clearImage,imageStore, guiStore, updateData, updateImage } from "../store";
   import { dragHandling } from "../funcs/file";
-  import { _ } from "svelte-i18n";
+  import { _, locale } from "svelte-i18n";
   import * as EXIF from "exif-js";
+    import { openFile, openFolder } from "../funcs/biz";
   export let img;
   export let containerW, containerH;
   let isMenuShow = false;
@@ -14,26 +15,7 @@
   <button
     data-tooltip={$_("open_image_file")}
     title="open image"
-    on:click={async () => {
-      let imgSrc = await open({
-        multiple: false,
-        filters: [
-          {
-            name: "Image",
-            extensions: ["png", "bmp", "jpeg", "jpg", "git", "webp", "svg"],
-          },
-        ],
-      });
-
-      if (imgSrc) {
-        const result = await dragHandling(imgSrc.toString());
-        updateData({
-          mode: "file",
-          currentIdx: 0,
-          source: [...result.source]
-        })
-      }
-    }}
+    on:click={async()=>await openFile()}
     class="hover:bg-gray-500 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
@@ -52,21 +34,7 @@
   </button>
   <button
     data-tooltip={$_("open_folder")}
-    on:click={async () => {
-      let imgSrc = await open({
-        directory: true,
-        multiple: false,
-      });
-
-      if (imgSrc) {
-        const result = await dragHandling(imgSrc.toString());
-        updateData({
-          mode: result.mode,
-          source: [...result.source],
-          currentIdx: 0,
-        })
-      }
-    }}
+    on:click={async()=>await openFolder()}
     class="hover:bg-gray-300 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
     <svg
@@ -194,13 +162,6 @@
         pointX: result.offsetX,
         pointY: result.offsetY
       })
-      // dispatch("view-action", {
-      //   ...$imageStore,
-      //   scaleX: result.ratio,
-      //   scaleY:result.ratio,
-      //   pointX: result.offsetX,
-      //   pointY: result.offsetY,
-      // });
     }}
     class="hover:bg-gray-400 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
   >
@@ -213,7 +174,7 @@
       height="200"
       ><path
         d="M912 648v232c0 17.673-14.327 32-32 32H648c0-35.346 28.654-64 64-64h136V712c0-34.993 28.084-63.426 62.942-63.991L912 648z m-792 0c30.619 0 55.498 24.573 55.992 55.074L176 704v144h144c30.619 0 55.498 24.573 55.992 55.074L376 904v8H144c-17.496 0-31.713-14.042-31.996-31.47L112 880V648h8z m537-313c17.496 0 31.713 14.042 31.996 31.47l0.004 0.53v290c0 17.496-14.042 31.713-31.47 31.996L657 689H367c-17.496 0-31.713-14.042-31.996-31.47L335 657V367c0-17.496 14.042-31.713 31.47-31.996L367 335h290z m-32 64H399v226h226V399z m255-287c17.496 0 31.713 14.042 31.996 31.47l0.004 0.53v232h-8c-30.619 0-55.498-24.573-55.992-55.074L848 320V176H704c-30.619 0-55.498-24.573-55.992-55.074L648 120v-8h232z m-504 0v8c0 30.928-25.072 56-56 56H176v144c0 30.928-25.072 56-56 56h-8V144c0-17.673 14.327-32 32-32h232z"
-        fill-opacity=".65"
+        
       /></svg
     >
   </button>
@@ -228,13 +189,6 @@
           pointX: result.offsetX,
           pointY: result.offsetY,
         })
-        // dispatch("view-action", {
-        //   ...$imageStore,
-        //   scaleX: result.ratio,
-        //   scaleY: result.ratio,
-        //   pointX: result.offsetX,
-        //   pointY: result.offsetY,
-        // });
       } else {
         updateImage({
           scaleX: 1.0,
@@ -242,13 +196,6 @@
           pointX: 0,
           pointY: 0,
         })
-        // dispatch("view-action", {
-        //   ...$imageStore,
-        //   scaleX: 1.0,
-        //   scaleY: 1.0,
-        //   pointX: 0,
-        //   pointY: 0,
-        // });
       }
     }}
     class="hover:bg-gray-400 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
@@ -275,11 +222,6 @@
         scaleX: $imageStore.scaleX * -1,
         scaleY: $imageStore.scaleY,
       })
-      // dispatch("view-action", {
-      //   ...$imageStore,
-      //   scaleX: $imageStore.scaleX * -1,
-      //   scaleY: $imageStore.scaleY,
-      // });
     }}
     data-tooltip={$_("flip_h")}
     class="hover:bg-gray-400 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
@@ -302,11 +244,6 @@
         scaleX: $imageStore.scaleX,
         scaleY: $imageStore.scaleY * -1,
       })
-      // dispatch("view-action", {
-      //   ...$imageStore,
-      //   scaleX: $imageStore.scaleX,
-      //   scaleY: $imageStore.scaleY * -1,
-      // });
     }}
     data-tooltip={$_("flip_v")}
     class="hover:bg-gray-400 dark:fill-slate-200 dark:hover:fill-sky-500 dark:hover:bg-gray-400 tooltip rounded-md p-1 hover:fill-white"
@@ -349,7 +286,7 @@
         isMenuShow ? "" : "hidden"
       } absolute bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600`}
     >
-      <ul
+      <ul on:mouseleave={()=>setTimeout(()=>isMenuShow=false,500)}
         class="py-2 text-sm text-gray-700 dark:text-gray-200"
         aria-labelledby="dropdownDividerButton"
       >
@@ -369,10 +306,19 @@
           >
         </li>
         <li>
-          <a
+          <a on:click={()=>{
+            if($guiStore.locale==="en-US"){
+
+              locale.set("zh-CN");
+              $guiStore.locale="zh-CN";
+            }else{
+              locale.set("en-US");
+              $guiStore.locale="en-US";
+            }
+          }}
             href="#"
             class="block px-4 py-1 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-            >{$_("change_locale")} {$guiStore.locale==="en-US"?"英文":"Chinese"}界面</a
+            >{$_("change_locale")} {$guiStore.locale==="en-US"?"Chinese":"英文界面"}</a
           >
         </li>
         <li>

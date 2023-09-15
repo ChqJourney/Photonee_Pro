@@ -29,6 +29,7 @@ fn main() {
         state.input_file_path=args[1].clone();
     }
     tauri::Builder::default()
+        .plugin(tauri_plugin_context_menu::init())
         .manage(state)
         .invoke_handler(tauri::generate_handler![init_file,fetch_locale])
         .run(tauri::generate_context!())

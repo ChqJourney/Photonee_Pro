@@ -12,6 +12,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-cli",
+ "tauri-plugin-context-menu",
 ]
 
 [[package]]
@@ -4420,6 +4421,22 @@ dependencies = [
  "syn 1.0.109",
  "tauri-codegen",
  "tauri-utils",
+]
+
+[[package]]
+name = "tauri-plugin-context-menu"
+version = "0.4.0"
+source = "git+https://github.com/c2r0b/tauri-plugin-context-menu?branch=main#586a3e079d397dec65410c973a645b21422c7b90"
+dependencies = [
+ "cocoa",
+ "dispatch",
+ "image",
+ "lazy_static",
+ "libc",
+ "objc",
+ "serde",
+ "tauri",
+ "winapi",
 ]
 
 [[package]]
