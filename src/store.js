@@ -1,7 +1,18 @@
 import { writable } from "svelte/store";
 
-export const guiStore=writable({locale:"en-US",os:"Windows_NT"})
-
+export const guiStore=writable({locale:"en-US",os:"Windows_NT",modalShow:false,modalComponent:undefined})
+export const showModal=(component)=>{
+    guiStore.update(val=>{
+        val={...val,modalShow:true,modalComponent:component}
+        return val;
+    })
+}
+export const closeModal=()=>{
+    guiStore.update(val=>{
+        val={...val,modalShow:false,modalComponent:undefined}
+        return val
+    })
+}
 export const dataStore=writable({mode:"file",source:[],currentIdx:0});
 export const updateData=(obj)=>{
     dataStore.update(val=>{

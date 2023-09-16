@@ -8,7 +8,7 @@
   import Brand from "./lib/svgs/Brand.svelte";
   import TopBar from "./lib/TopBar.svelte";
   import ToolBar from "./lib/ToolBar.svelte";
-  import { clearImage, dataStore, guiStore, imageStore, resetRotation, updateData, updateImage } from "./store";
+  import { clearImage, closeModal, dataStore, guiStore, imageStore, resetRotation, updateData, updateImage } from "./store";
   import { dragHandling, fileName } from "./funcs/file";
   import { register } from '@tauri-apps/api/globalShortcut';
   import Thumbs from "./lib/Thumbs.svelte";
@@ -16,6 +16,7 @@
   import Infos from "./lib/Infos.svelte";
     import { openFile, openFolder } from "./funcs/biz";
     import { type } from "@tauri-apps/api/os";
+    import Modal from "./lib/Modal.svelte";
     listen("openFile-menu-clicked",async()=>await openFile());
     listen("openFolder-menu-clicked",async()=>await openFolder());
     listen("close-menu-clicked",()=>clearImage())
@@ -90,6 +91,7 @@
 </script>
 
 <svelte:window class="" bind:innerHeight={osh} bind:innerWidth={osw} />
+<Modal width={"w-2/3"} on:negitive={()=>closeModal()} isOpen={$guiStore.modalShow} component={$guiStore.modalComponent}></Modal>
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div on:contextmenu={e=>e.preventDefault()}
   style="border-radius: 8px;"

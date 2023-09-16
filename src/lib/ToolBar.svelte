@@ -1,11 +1,12 @@
 <script>
   import { message, open } from "@tauri-apps/api/dialog";
   import { fitSize } from "../funcs/image";
-  import { clearImage,imageStore, guiStore, updateData, updateImage } from "../store";
+  import { clearImage,imageStore, guiStore, updateData, updateImage, showModal } from "../store";
   import { dragHandling } from "../funcs/file";
   import { _, locale } from "svelte-i18n";
   import * as EXIF from "exif-js";
     import { openFile, openFolder } from "../funcs/biz";
+    import Donate from "./Donate.svelte";
   export let img;
   export let containerW, containerH;
   let isMenuShow = false;
@@ -326,8 +327,10 @@
           >
         </li>
         <li>
-          <a target="_blank"
-            href="https://github.com/ChqJourney/ImageProc"
+          <a on:click={()=>{
+            showModal(Donate);
+            isMenuShow=false;
+          }}
             class="flex px-4 py-1 gap-1 dark:fill-orange-500 fill-violet-500 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
             >
             <svg class="h-5 w-5" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M670.72 94.72a32 32 0 0 1 45.226667 45.226667L663.850667 192h93.44c13.568 0 25.6 8.533333 30.165333 21.248l53.333333 149.333333A32 32 0 0 1 810.666667 405.333333h-44.586667l-67.712 428.8c-8.96 62.506667-62.293333 104.533333-126.72 104.533334h-119.296c-64.469333 0-117.802667-42.026667-126.677333-104.106667L257.877333 405.333333H213.333333a32 32 0 0 1-30.165333-42.752l53.333333-149.333333A32 32 0 0 1 266.666667 192h306.688l97.322666-97.28z m30.549333 310.613333H322.645333l66.346667 419.712c4.224 29.653333 29.525333 49.621333 63.317333 49.621334h119.338667c33.792 0 59.093333-19.968 63.402667-50.090667L701.269333 405.333333z m33.493334-149.333333H289.194667l-30.464 85.333333h506.496l-30.464-85.333333z"></path></svg>
