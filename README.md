@@ -13,5 +13,37 @@ This app can preview images(png, bmg, jpg...), and manipulate images with simple
 
 Available for Linux, macOS and Windows.
 
-Please go to [releases page](https://github.com/ChqJourney/ImageProc/releases) to check version you need.
+Please go to [releases page](https://github.com/ChqJourney/ImageProc/releases) to check version you need. 
+Release are zip files, after extract, only one exe file. Copy it to anywhere you want.
 
+## How to use
+
+### Open image
+- drag and drop image and folder to window
+- click the open file or open folder button
+- right click on window
+
+### manipulating image
+
+- zoom
+- rotate
+- flip
+- fit to window
+- restore to original size
+- panning
+
+### dark mode enabled
+following your system'theme to automatically change.
+
+### multi-language
+- English
+- Chinese(Simple)
+you can change it in the “more" menu.
+
+## Contributions
+
+Welcome to any issue or PR!
+
+## License
+
+Apache-2.0 license. See [License here](./LICENSE) for details.
