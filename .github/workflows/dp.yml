@@ -91,7 +91,7 @@ jobs:
               draft: false,
               prerelease: false
             })
-publish-macos-release:
+  publish-macos-release:
     permissions:
       contents: write
     runs-on: [macos-latest]
