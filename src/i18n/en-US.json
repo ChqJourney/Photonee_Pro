@@ -13,6 +13,6 @@
     "show_exif":"Show EXIF infos",
     "change_locale":"Switch to",
     "about":"About",
-    "close_img":"Close current image"
-    
+    "close_img":"Close image",
+    "donate":"Buy me a coffee"
 }
