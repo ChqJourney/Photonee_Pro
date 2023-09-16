@@ -1,5 +1,5 @@
 [package]
-name = "Image_Try"
+name = "Photonee_Viewer"
 version = "0.0.0"
 description = "Viewer for images"
 authors = ["patrick chen"]
