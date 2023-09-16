@@ -24,15 +24,20 @@
     await register("CommandOrControl+O",async()=>await openFile());
     await register("CommandOrControl+Shift+O",async()=>await openFolder());
     await register("CommandOrControl+Shift+C",()=>clearImage());
-    const file = await invoke("init_file");
-    if (file) {
-      updateData({
-        mode: "file",
-        source: [
-          { path: file, name: fileName(file), url: convertFileSrc(file) },
-        ]
-      });
-      
+    const path = await invoke("init_file");
+    
+    if (path) {
+      console.log(path)
+      const re=await dragHandling(path);
+      if(re){
+
+        updateData({
+          mode: re.mode,
+          source: [
+            ...re.source
+          ]
+        });
+      }
     }
     const unlisten = await listen("tauri://file-drop", async (event) => {
       
