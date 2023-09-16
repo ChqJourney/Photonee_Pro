@@ -16,10 +16,11 @@ This app can preview images(png, bmg, jpg...), and manipulate images with simple
 
 ## Download
 
-Available for Linux(soon), macOS(soon) and Windows(ready).
+Available for Linux(soon), macOS(ready) and Windows(ready).
 
 Please go to [releases page](https://github.com/ChqJourney/ImageProc/releases) to check version you need. 
-Release are zip files, after extract, only one exe file. Copy it to anywhere you want.
+
+Portable version is provided.
 
 ## How to use
 

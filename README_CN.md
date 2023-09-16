@@ -7,7 +7,7 @@
 <h1 align="center"/>Phtonee - 看图app</h1>
 
 此跨平台软件用于预览、浏览图片文件，兼容多种图形格式，png, bmp, jpg,webp, gif等。
-适用于windows（已发布）, mac os（未发布）, Linux（未发布）。
+适用于windows（已发布）, mac os（已发布）, Linux（未发布）。
 
 ## 优点
 - **易用** 简洁的界面设计，上手即用
@@ -16,7 +16,7 @@
 
 ## 下载
 移步至[发布页面](https://github.com/ChqJourney/ImageProc/releases) ，
-下载对应平台的压缩包，解压缩后只有一个可执行文件，复制到任何位置即可使用。
+下载对应平台的压缩包，绿色版解压缩后复制到任何位置即可使用。
 
 ## 如何使用
 
