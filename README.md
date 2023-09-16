@@ -4,10 +4,15 @@
   <img align="center" src="./public/brand.svg" width="200" height="120" />
 </div>
 
-<h1 align="center"/>Image viewing app <sup><em>OnebitAi</em></sup></h1>
+<h1 align="center"/>Photonee - An image viewing app</h1>
 
 
 This app can preview images(png, bmg, jpg...), and manipulate images with simple action, resize, flip, rotate, remove background, etc.
+
+## Advantages
+- **Easy to use** simple interface, easy to get started with 
+- **Cool** rounded window, innovative interface design
+- **Portable** no need to be installed
 
 ## Download
 
