@@ -31,8 +31,8 @@ jobs:
             const { data } = await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag_name: `V${{ env.PACKAGE_VERSION }}`,
-              name: `Jobots V${{ env.PACKAGE_VERSION }}`,
+              tag_name: `v${{ env.PACKAGE_VERSION }}`,
+              name: `Photonee V${{ env.PACKAGE_VERSION }}`,
               body: '${{ github.event.head_commit.message }}',
               draft: true,
               prerelease: false

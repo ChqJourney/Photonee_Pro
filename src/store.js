@@ -1,5 +1,7 @@
 import { writable } from "svelte/store";
 
+
+
 export const guiStore=writable({locale:"en-US",os:"Windows_NT",modalShow:false,modalComponent:undefined})
 export const showModal=(component)=>{
     guiStore.update(val=>{
